@@ -34,9 +34,6 @@ var graph_offset_x = 20;
 var game_count = 15;
 var player_count = 25;
 
-var slackers = [];
-var show_slackers = true;
-
 function draw_games() {
     game_positions = [];
     for (var i in game_details)
@@ -80,14 +77,11 @@ function draw_ranking() {
         player_slack_positions = [];
         for (var i=0; i<ranks.length; i++)
         {
-            if (show_slackers || ranks[i] > 0 || ((ranks.length > (i+1)) && (ranks[i+1] > 0)) || ((ranks.length > (i+2)) && (ranks[i+2] > 0)))
-            {
-                position = [i, Math.abs(ranks[i]) ];
-                player_positions.push(position);
-            }
+            position = [i, Math.abs(ranks[i]) ];
+            player_positions.push(position);
+
             if (ranks[i] < 0)
             {
-                position = [i, Math.abs(ranks[i]) ];
                 player_slack_positions.push(position);
             }
         };
