@@ -11,3 +11,11 @@ create table games (
     player1_score3 integer not null,
     player2_score3 integer not null
 );
+
+drop table if exists shouts;
+create table shouts (
+    id integer primary key autoincrement,
+    player text not null,
+    shout text not null,
+    date text not null
+);

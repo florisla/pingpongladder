@@ -39,6 +39,10 @@ def player2_won(player1_scores, player2_scores):
 
     return player2_won > 1
 
+def get_shouts():
+    cur = g.db.execute('select player, shout, date from shouts order by date desc')
+    g.shouts = [dict(zip(['player', 'shout', 'date'], row)) for row in cur.fetchall()]
+
 def calculate_ranking():
     if hasattr(g, 'swaps'):
         return
@@ -94,6 +98,7 @@ def before_request():
     g.original_ranking = app.config['PLAYERS'][:]
     try:
         calculate_ranking()
+        get_shouts()
     except Exception as e:
         flash(e)
 
@@ -105,7 +110,7 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_home():
-    return render_template('index.html')
+    return render_template('index.html', shouts=g.shouts[:20])
 
 @app.route('/ranking')
 def show_ranking():
@@ -156,6 +161,14 @@ def show_rules():
 def show_news():
     return render_template('show_news.html')
 
+@app.route('/shoutbox')
+def shoutbox():
+
+    return render_template(
+        'show_shoutbox.html',
+        shouts = g.shouts,
+    )
+
 @app.route('/game/add', methods=['POST'])
 def add_game():
     if not session.get('logged_in'):
@@ -175,6 +188,19 @@ def add_game():
     flash("Game result was saved")
     return redirect(url_for('show_games'))
 
+@app.route('/shoutbox/shout', methods=['POST'])
+def add_shout():
+    if not session.get('logged_in'):
+        abort(401)
+    g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [
+            session['username'],
+            request.form['shout'],
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+    ])
+    g.db.commit()
+    flash('Your shout is heard.')
+    return redirect(url_for('show_home'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 
@@ -192,7 +218,8 @@ def login():
             error = 'Invalid password'
         else:
             session['logged_in'] = True
-            flash("You were logged in as '{}'".format(request.form['username']))
+            session['username'] = request.form['username']
+            flash("You were logged in as '{}'".format(session['username']))
             return redirect(url_for('show_home'))
     users = app.config['PLAYERS']
     return render_template('login.html', error=error, users=users)

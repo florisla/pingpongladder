@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  {% if session.logged_in %}
+    <h2>Shout it out</h2>
+    <form action="{{ url_for('add_shout') }}" method=post class=add-shout>
+        <input type=text size=70 name=shout>
+        <input type=submit value='Shout'>
+    </form>
+  {% endif %}
+
+  <h2>Shouts</h2>
+  <ul class=shouts>
+  {% for shout in shouts %}
+    <li> <span class="shouter">[{{ shout['player'] }}]</span> - {{ shout['shout'] }}</li>
+  {% endfor %}
+
+  </ul>
+
+{% endblock %}
+
