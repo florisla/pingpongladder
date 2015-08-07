@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  {% if session.logged_in %}
+    <h2>Log game score</h2>
+    <form action="{{ url_for('add_game') }}" method=post class=add-game>
+        <select name="player1"><option name="none" selected> </option>
+            {% for player in players %}
+                <option name="{{ player }}">{{ player }}</option>
+            {% endfor %}
+        </select> (challenger) vs
+        <select name="player2"><option name="none" selected> </option>
+            {% for player in players %}
+                <option name="{{ player }}">{{ player }}</option>
+            {% endfor %}
+        </select> (challengee)
+        <br />
+
+        Game 1 <input type=text size=2 name=player1_score1> -
+        <input type=text size=2 name=player2_score1>
+        <br />
+        Game 2 <input type=text size=2 name=player1_score2> -
+        <input type=text size=2 name=player2_score2>
+        <br />
+        Game 3 <input type=text size=2 name=player1_score3> -
+        <input type=text size=2 name=player2_score3>
+        <br />
+        <br />
+        <input type=submit value='Add'>
+
+    </form>
+  {% endif %}
+
+  <h2>Games</h2>
+  <ul class=games>
+  {% for game in games %}
+    <li> {{ game['player1'] }} - {{ game['player2'] }}: <span class='score'>{{ game['player1_score1'] }}-{{ game['player2_score1'] }}</span>, <span class='score'>{{ game['player1_score2'] }}-{{ game['player2_score2'] }}</span>, <span class='score'>{{ game['player1_score3'] }}-{{ game['player2_score3'] }}</span> ({{ game['date']  }})
+  {% endfor %}
+  </ul>
+
+  <h2>Stats</h2>
+  <ul>
+      <li>{{ games|count }} games played
+  </ul>
+
+{% endblock %}
+

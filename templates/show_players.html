@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <h2>Players</h2>
+  <ul class=players>
+  {% for player in players %}
+    <li>{{ player['name'] }}
+  {% endfor %}
+  </ul>
+
+  <h2>Possible players</h2>
+  <ul class=players>
+  {% for player in possible_players %}
+    <li>{{ player['name'] }}
+  {% endfor %}
+  </ul>
+
+  <h2>Stats</h2>
+  <ul>
+      <li>{{ players|count }} confirmed players
+      <li>{{ possible_players|count }} possible extra participants
+  </ul>
+
+{% endblock %}

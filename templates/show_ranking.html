@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <h2>Ranking</h2>
+  The ranking, from highest to lowest:
+
+  <ul class=ranking>
+  {% for player in ranking %}
+    <li>{{ player['rank'] }}. {{ player['name'] }}
+  {% endfor %}
+  </ul>
+
+{% endblock %}

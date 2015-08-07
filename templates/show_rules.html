@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Rules</h2>
+
+  <h3>Ladder ranking</h3>
+  <ul>
+      <li>Initially the players are ranked randomly, with only some of the best placed intentionally at the bottom.</li>
+      <li>A player can challenge an opponent who is 1 to 3 places above him.</li>
+      <li>You cannot deny a challenge; this is equal to defeating three times with 11-0.</li>
+      <li>You cannot challenge the last player you played against (either as challenger or challengee)</li>
+      <li>If you have received multiple challenges, you have to play them in order.  Since a match result can influence the ranking, subsequent challenges may become invalid.</li>
+      <li>It the lower-ranked challenger wins, both players swap places in the ranking; so naturally, the best players are rising to the top.</li>
+  </ul>
+
+  <h3>Absence</h3>
+  <ul>
+      <li>If you're not in, you don't have to play -- being out of office is therefor not a problem.</li>
+      <li>But players who have played almost no games (amount to be decided) are considered to not have participated in the final ranking.</li>
+  </ul>
+
+  <h3>End of tournament</h3>
+  <ul>
+      <li>The tournament will take several weeks.</li>
+      <li>The end date of the tournament is still to be decided and will be communicated well in advance.</li>
+  </ul>
+
+  <h3>Matches</h3>
+  <ul>
+    <li>The match winner is the one who first wins two sets of 11 points (so max three sets).</li>
+    <li>You can only win a set with a minimal difference of 2 points.</li></lI>
+    <li>Regular rules apply, <a href="http://www.tafeltennis.org/spelregels.htm">see here</a>.</li>
+  </ul>
+
+  <h3>Serves</h3>
+  <ul>
+    <li>Serves are switched every 2 points.</li>
+    <li>As soon as both players have 10 points, serves are switched every point.</li>
+    <li>Serves do not have to cross play-halves.</li>
+    <li>A serve which touches the net but bounces correctly, needs to be played again.</li>
+    <li>There is no second serve; a serve which which bounces incorrectly is a lost point.</li>
+  </ul>
+
+  <h3>Whining</h3>
+  <ul>
+      <li>Excessive whining is punished by your removal from the tournament.</li>
+      <li>Excessive is defined as claiming >10 times that you're "not sure about participating", "ready to quit", "no longer feel like it", "don't see the point", and the like.</li>
+  </ul>
+
+{% endblock %}
