@@ -17,7 +17,7 @@ h2              { font-size: 1.2em; }
                   border: 1px solid #aacbe2; }
 .error          { background: #f0d6d6; padding: 0.5em; }
 .score          { font-weight: bold; }
-.rank           { fill: none; stroke-width: 3; }
+.rank           { fill: none; stroke-width: 4; }
 .slackerrank    { fill: none; stroke: white; stroke-width: 3; opacity:0.5;}
 .ranknr         { fill:black; }
 svg             { background-color: white; }

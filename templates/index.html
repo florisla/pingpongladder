@@ -160,6 +160,12 @@ function draw_ranking() {
        .data(positions)
        .enter()
        .append('path')
+       .on('mouseover', function(d) {
+           d3.select(this).style({'stroke-width':7});
+        })
+       .on('mouseout', function(d) {
+           d3.select(this).style({'stroke-width':4});
+        })
        .attr('class', 'rank')
        .attr('stroke', function(d,i) {return color(i); } )
        .attr("d", function(d) {return line(d.positions);});
