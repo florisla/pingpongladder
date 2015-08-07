@@ -1,16 +1,3 @@
-drop table if exists entries;
-create table entries (
-  id integer primary key autoincrement,
-  title text not null,
-  text text not null
-);
-
-drop table if exists players;
-create table players (
-    id integer primary key autoincrement,
-    name text not null
-);
-
 drop table if exists games;
 create table games (
     id integer primary key autoincrement,
