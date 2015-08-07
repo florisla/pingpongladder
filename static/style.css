@@ -22,3 +22,4 @@ h2              { font-size: 1.2em; }
 .ranknr         { fill:black; }
 svg             { background-color: white; }
 .game           { fill:gray; opacity:0.2}
+.dateline       { stroke:black; opacity:0.4;}

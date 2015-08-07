@@ -36,9 +36,22 @@ var player_count = 25;
 
 function draw_games() {
     game_positions = [];
+    last_date = '';
+    date_indices = [];
+
     for (var i in game_details)
     {
         game_detail = game_details[i];
+        day = game_detail.date.substring(0,10);
+        if (day != last_date)
+        {
+            last_date = day;
+            if (game_detail.index > 1)
+            {
+                date_indices.push(game_detail.index);
+            }
+        }
+
         if (game_detail.winner == game_detail.challenger.name)
         {
             continue;
@@ -64,6 +77,30 @@ function draw_games() {
         .attr("width", -6 + (width-100)/game_count)
         .attr("height", function(d) { return 2 + d[2] * height/player_count; })
         .attr('class', 'game');
+
+    /*
+    var date_lines = svg.selectAll('.gameline')
+        .data(date_indices)
+        .enter()
+        .append("line")
+        .attr('x1', 10)
+        .attr('x2', 100)
+        .attr('y1', 0)
+        .attr('y2', 100)
+        */
+
+    for (var di in date_indices)
+    {
+        index = date_indices[di];
+
+        svg.append("line")
+            .attr('class', 'dateline')
+            //.attr('stroke', 'gray')
+            .attr("x1", graph_offset_x + (index-1) * (width-100)/game_count)
+            .attr("y1", 8)
+            .attr("x2", graph_offset_x + (index-1) * (width-100)/game_count)
+            .attr("y2", height-6);
+    }
 }
 
 function draw_ranking() {
