@@ -184,7 +184,6 @@ function draw_ranking() {
         rank_nrs.push(i);
     };
 
-
     var rank_nr_labels = svg.selectAll('.ranknr')
         .data(rank_nrs)
         .enter()
@@ -197,7 +196,7 @@ function draw_ranking() {
         .data(players)
         .enter()
         .append('text')
-        .attr("x", width-100)
+        .attr("x", width-85)
         .attr("y", function(d) { return 14 + (d[0] - 1) * height/player_count; } )
         .attr('stroke', function(d,i) {return color(i); } )
         .attr('stroke-width', 1)
