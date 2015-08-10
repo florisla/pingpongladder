@@ -8,18 +8,12 @@
     <svg width="800" height="450"></svg>
   </p>
 
+{% include "shoutbox.html" %}
 
-  <h2>Shouts</h2>
-  <p>
-  You can share your feedback (or officially announce challenges) in the <a href="/shoutbox">shoutbox</a>.
-  </p>
-  <ul class=shouts>
-  {% for shout in shouts %}
-    <li> <span class="shouter">[{{ shout['player'] }}]</span> - {{ shout['shout'] }}</li>
-  {% endfor %}
-  </ul>
+Full shout history is visible on <a href="/shoutbox">the shoutbox page</a>
 
 <script src="/static/js/d3.v3.min.js"></script>
 <script src="/static/js/ranking.js"></script>
+
 
 {% endblock %}
