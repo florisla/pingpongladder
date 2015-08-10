@@ -1,13 +1,20 @@
 <!doctype html>
-<title>Tournament</title>
+<title>{% block title %}{% endblock %} - PingpongLadder</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
-  <h1><a href="/">Tournament</a></h1>
+  <h1><a href="/">PingpongLadder</a></h1>
   <div class=metanav>
+  <a href="/">Home</a>
+  <a href="/ranking">Ranking</a>
+  <a href="/games">Games</a>
+  <a href="/players">Players</a>
+  <a href="/rules">Rules</a>
+  <a href="/news">News</a>
+  <a href="/shoutbox">Shoutbox</a>
   {% if not session.logged_in %}
-    <a href="{{ url_for('login') }}">log in</a>
+    <a href="{{ url_for ('login') }}">Login</a>
   {% else %}
-    <a href="{{ url_for('logout') }}">log out</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
   {% endif %}
   </div>
   {% for message in get_flashed_messages() %}
