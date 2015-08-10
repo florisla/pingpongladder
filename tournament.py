@@ -230,15 +230,32 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_home'))
 
-#@app.route('/internal/init')
-def init_db():
+@app.route('/internal/manage')
+def manage():
     if not session.get('logged_in'):
         abort(401)
 
-    with closing(connect_db()) as db:
-        with app.open_resource('schema.sql', mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
+    if not session['username'] in app.config['ADMINS']:
+        abort(401)
 
-    flash('Re-init is done')
-    return redirect(url_for('show_home'))
+    cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
+    games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
+
+    cur = g.db.execute('select id, player, shout, date from shouts order by date desc')
+    shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
+
+    return render_template('manage.html', games=games, shouts=shouts)
+
+@app.route('/internal/manage', methods=['POST'])
+def manage_query():
+    if not session.get('logged_in'):
+        abort(401)
+
+    if not session['username'] in app.config['ADMINS']:
+        abort(401)
+
+    g.db.execute(request.form['query'])
+    g.db.commit()
+
+    flash('Query is executed')
+    return redirect(url_for('manage'))
