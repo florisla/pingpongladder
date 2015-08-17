@@ -135,7 +135,7 @@ def show_games():
 
     return render_template(
         'show_games.html',
-        games=g.games,
+        games=list(reversed(g.games)),
         players=app.config['PLAYERS'],
         swaps=g.swaps,
     )
