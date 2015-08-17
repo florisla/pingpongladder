@@ -40,7 +40,7 @@ def player2_won(player1_scores, player2_scores):
     return player2_won > 1
 
 def get_shouts():
-    cur = g.db.execute('select player, shout, date from shouts order by date desc')
+    cur = g.db.execute('select player, shout, date from shouts order by date desc, id desc')
     g.shouts = [dict(zip(['player', 'shout', 'date'], row)) for row in cur.fetchall()]
 
 def calculate_ranking():
