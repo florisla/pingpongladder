@@ -6,7 +6,6 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 
 import configuration
 import hashlib
-from contextlib import closing
 
 app = Flask(__name__)
 app.config.from_object(configuration)
