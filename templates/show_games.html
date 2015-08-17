@@ -28,9 +28,13 @@
         <br />
         <br />
         <input type=submit value='Add'>
-
     </form>
   {% endif %}
+
+  <h2>Stats</h2>
+  <ul>
+      <li>{{ games|count }} games played
+  </ul>
 
   <h2>Games</h2>
   <ul class=games>
@@ -39,10 +43,7 @@
   {% endfor %}
   </ul>
 
-  <h2>Stats</h2>
-  <ul>
-      <li>{{ games|count }} games played
-  </ul>
+
 
 {% endblock %}
 
