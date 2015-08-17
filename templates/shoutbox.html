@@ -11,6 +11,6 @@
   <h2>Shoutbox</h2>
   <ul class=shouts>
   {% for shout in shouts %}
-    <li> <span class="shouter">[{{ shout['player'] }}]</span> - {{ shout['shout'] }}</li>
+    <li> <span class="shouter">[{{ shout['player'] }}]</span> - {{ shout['shout']|safe }}</li>
   {% endfor %}
   </ul>
