@@ -1,29 +1,22 @@
 
 var width = 800;
 var height = 500;
-var graph_offset_x = 20;
+var graph_offset_x = 18;
 var game_count = 15;
 var player_count = 25;
-var min_game = 0;
 
-var game_count = 0;
-var game_width = 20;
-
+var game_width = 18;
 var scales = [];
 var scale_index = 0;
 var scale_index_unity = 0;
 var translation = graph_offset_x;
 
-url = window.location.toString();
-skip_pos = url.search("skip=");
-if (skip_pos > 0) {
-    skip = parseInt(url.substring(skip_pos+5, skip_pos+8));
-    min_game = skip;
-}
-
 function draw() {
     d3.json("http://florisla.pythonanywhere.com/ranking/data", function(ranks) {
-        ranking = ranks;
+        ranking = ranks.positions;
+        absences = ranks.absences;
+        challengers = ranks.challengers;
+        challengees = ranks.challengees;
         draw_ranking();
 
         d3.json("http://florisla.pythonanywhere.com/games/data", function(games) {
@@ -43,6 +36,7 @@ function setup_scales() {
     if (scales.length == 0) {
         total_width = game_width * game_count + 0;
         full_view_scale = (width-100) / total_width;
+        console.log(full_view_scale);
         scale = full_view_scale;
         while (scale < 2.4)
         {
@@ -57,8 +51,6 @@ function setup_scales() {
 }
 
 function pan_and_zoom() {
-    console.log('centerpoint', (translation + (width-80)/2) * (1/scales[scale_index]));
-
     group = d3.select('#ranklines');
     group.transition()
         .duration(500)
@@ -75,7 +67,7 @@ function dotranslate(to_right) {
 
     // don't go too far off the right
     total_drawn_width = game_count*scales[scale_index]*game_width;
-    invisible_width = total_drawn_width - (width - 80);
+    invisible_width = total_drawn_width - (width - 88);
     translation = Math.max(-invisible_width, translation);
 
     pan_and_zoom();
@@ -99,7 +91,7 @@ function zoom(zoom_in) {
 function latest_view() {
     scale_index = scale_index_unity;
     total_drawn_width = game_count * game_width * scales[scale_index];
-    invisible_width = total_drawn_width - (width - 80);
+    invisible_width = total_drawn_width - (width - 88);
     translation = - invisible_width;
     pan_and_zoom();
 }
@@ -118,7 +110,7 @@ function draw_ranking() {
         ranks = ranking[player];
         player_positions = [];
         player_slack_positions = [];
-        for (var i=min_game; i<ranks.length; i++) {
+        for (var i=0; i<ranks.length; i++) {
             position = [i, Math.abs(ranks[i]) ];
             player_positions.push(position);
 
@@ -144,7 +136,7 @@ function draw_ranking() {
         }
     };
 
-    game_count = ranks.length - min_game;
+    game_count = ranks.length;
     player_count = positions.length;
 
     var random_color = d3.scale.category20();
@@ -171,7 +163,7 @@ function draw_ranking() {
         .attr('id', 'ranklines');
 
     var line = d3.svg.line()
-        .x(function(d){ return graph_offset_x + (d[0]-min_game) * game_width; })
+        .x(function(d){ return graph_offset_x + (d[0]) * game_width; })
         .y(function(d){ return 10 + (d[1]-1) * height/player_count; })
         .interpolate('monotone');
 
@@ -243,18 +235,37 @@ function draw_ranking() {
         .attr('stroke', 'none')
         .attr('opacity', 0.7);
 
+    function textify_player(player) {
+        player_name = player[1];
+        player_label = player_name;
+
+        if (player_name in absences) {
+            player_label += ' 🌴'; // ⌂ Ø is also possible
+        }
+        if (challengers.indexOf(player_name) >= 0) {
+            player_label += ' ⤴';
+        }
+        if (challengees.indexOf(player_name) >= 0) {
+            player_label += ' ⤵';
+        }
+        if (player_name == 'Bert') {
+            player_label += ' ☮';
+        }
+        return player_label;
+    }
+
     var player_labels = svg.selectAll('.playerlabel')
         .data(players)
         .enter()
         .append('text')
-        .attr("x", width-70)
+        .attr("x", width-80)
         .attr("y", function(d) { return 14 + (d[0] - 1) * height/player_count; })
         .attr('stroke', bertize)
         .attr('fill', bertize)
         .attr('stroke-width', 1)
         .attr('font-size', 14)
         .attr('id', function(d) { return d[1].toLowerCase().replace(' ', '_'); } )
-        .text(function(d) { return d[1]; });
+        .text(textify_player);
 }
 
 function draw_games() {
@@ -292,7 +303,7 @@ function draw_games() {
         .data(game_positions)
         .enter()
         .append("rect")
-        .attr("x", function(d) { return 3 + graph_offset_x + (d[0]-1-min_game) * game_width; })
+        .attr("x", function(d) { return 3 + graph_offset_x + (d[0]-1) * game_width; })
         .attr("y", function(d) { return 9 + d[1] * height/player_count; })
         .attr("width", -6 + game_width)
         .attr("height", function(d) { return 2 + d[2] * height/player_count; })
@@ -314,9 +325,9 @@ function draw_games() {
         ranks.append("line")
             .attr('class', 'dateline')
             //.attr('stroke', 'gray')
-            .attr("x1", graph_offset_x + (index-1-min_game) * game_width)
+            .attr("x1", graph_offset_x + (index-1) * game_width)
             .attr("y1", 8)
-            .attr("x2", graph_offset_x + (index-1-min_game) * game_width)
+            .attr("x2", graph_offset_x + (index-1) * game_width)
             .attr("y2", height-6);
     }
 }

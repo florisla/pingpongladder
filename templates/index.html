@@ -2,33 +2,20 @@
 {% block title %} Home {% endblock %}
 {% block body %}
 
-  <h2>Ranking history</h2>
-  <p>
   <input type="button" onclick="dotranslate(false);" value="<-" />
   <input type="button" onclick="zoom(false);" value="-" />
   <input type="button" onclick="zoom(true);" value="+" />
   <input type="button" onclick="dotranslate(true);" value="->" />
   <input type="button" onclick="all_view(true);" value="All" />
   <input type="button" onclick="latest_view(true);" value="Latest" />
-  (not visible in Internet Explorer)
   <br />
   <svg width="800" height="450"></svg>
-
-  </p>
-  
-  <h4>Note: absence</h4>
-  <p>
-  {% for player,returns in absence.items() %}
-    {{ player }} is out till {{ returns }}<br />
-  {% endfor %}
   </p>
 
 {% include "shoutbox.html" %}
-
-Full shout history is visible on <a href="/shoutbox">the shoutbox page</a>
+&lt;- <a href="/shoutbox">All shouts</a>
 
 <script src="/static/js/d3.v3.min.js"></script>
 <script src="/static/js/ranking.js"></script>
-
 
 {% endblock %}
