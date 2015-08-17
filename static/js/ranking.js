@@ -176,14 +176,24 @@ function draw_ranking() {
         .interpolate('monotone');
 
     var rank_lines = ranks.selectAll('.rank')
-       .data(positions)
-       .enter()
-       .append('path')
-       .on('mouseover', function(d) {
-           d3.select(this).style({'stroke-width':7});
+        .data(positions)
+        .enter()
+        .append('path')
+        .on('mouseover', function(d) {
+            // paint thicker
+            d3.select(this).style({'stroke-width':7});
+            // also highlight the player's name
+            id = '#' + d.player.toLowerCase().replace(' ', '_');
+            d3.select(id)
+                .attr('font-size', 20)
+                .attr('font-weight', 'bold');
         })
        .on('mouseout', function(d) {
-           d3.select(this).style({'stroke-width':4});
+            d3.select(this).style({'stroke-width':4});
+            id = '#' + d.player.toLowerCase().replace(' ', '_');
+            d3.select(id)
+                .attr('font-weight', 'normal')
+                .attr('font-size', 14);
         })
        .attr('class', 'rank')
        .attr('stroke', bertize)
@@ -205,7 +215,7 @@ function draw_ranking() {
         rank_nrs.push(i);
     };
 
-    var player_labels_background = svg
+    var rank_nr_labels_background = svg
         .append('rect')
         .attr('width', 20)
         .attr('height', height)
@@ -243,6 +253,7 @@ function draw_ranking() {
         .attr('fill', bertize)
         .attr('stroke-width', 1)
         .attr('font-size', 14)
+        .attr('id', function(d) { return d[1].toLowerCase().replace(' ', '_'); } )
         .text(function(d) { return d[1]; });
 }
 
