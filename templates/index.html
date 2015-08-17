@@ -7,6 +7,13 @@
   (not visible in Internet Explorer)<br />
     <svg width="800" height="450"></svg>
   </p>
+  
+  <h4>Note: absence</h4>
+  <p>
+  {% for player,returns in absence.items() %}
+    {{ player }} is out till {{ returns }}<br />
+  {% endfor %}
+  </p>
 
 {% include "shoutbox.html" %}
 

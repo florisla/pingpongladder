@@ -116,7 +116,7 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_home():
-    return render_template('index.html', shouts=g.shouts[:20])
+    return render_template('index.html', shouts=g.shouts[:20], absence=app.config['ABSENCE'])
 
 @app.route('/ranking')
 def show_ranking():
