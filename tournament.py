@@ -260,7 +260,7 @@ def manage():
     cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
     games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
 
-    cur = g.db.execute('select id, player, shout, date from shouts order by date desc')
+    cur = g.db.execute('select id, player, shout, date from shouts order by date asc')
     shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
 
     return render_template('manage.html', games=games, shouts=shouts)
