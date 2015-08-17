@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block title %}Challenges{% endblock %}
+{% block body %}
+
+  {% if session.logged_in %}
+    <h2>Enter challenge</h2>
+
+    <form action="{{ url_for('add_challenge') }}" method=post class=add-challenge>
+        {% if session.username == 'Floris' %}
+            Challenger: <select name="player1"><option name="none" selected> </option>
+                {% for player in players %}
+                    <option name="{{ player }}">{{ player }}</option>
+                {% endfor %}
+            </select><br />
+        {% else %}
+            Challenger: <select name="player1"><option name="{{ session.username }}" selected>{{ session.username }}</option></select><br />
+        {% endif %}
+
+        Challengee: <select name="player2"><option name="none" selected> </option>
+            {% for player in players %}
+                <option name="{{ player }}">{{ player }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="comment" value="" />
+        <br />
+
+        <input type=submit value='Challenge'>
+    </form>
+    <br />
+  {% endif %}
+
+  <h4>Note: absence</h4>
+  <p>
+  {% for player,returns in absence.items() %}
+    {{ player }} is out till {{ returns }}<br />
+  {% endfor %}
+  </p>
+
+  <h2>Challenges</h2>
+  <ul class=challenges>
+  {% for challenge in challenges %}
+    <li> {{ challenge['player1'] }} - {{ challenge['player2'] }}
+  {% endfor %}
+  </ul>
+
+  {% if session.logged_in %}
+    <h4>Cleanup</h4>
+        <form action="{{ url_for('remove_challenge') }}" method=post class=remove-challenge>
+        <input type=submit value='Remove my challenge'>
+    </form>
+
+    <br />
+
+  {% endif %}
+
+
+{% endblock %}

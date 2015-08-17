@@ -97,11 +97,17 @@ def calculate_ranking():
             else:
                 g.positions[player].append(-i - 1)
 
+def get_challenges():
+    cur = g.db.execute('select  player1, player2, date, comment from challenges order by date asc')
+    challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
+    return challenges
+
 @app.before_request
 def before_request():
     g.db = connect_db()
     g.ranking = app.config['PLAYERS'][:]
     g.original_ranking = app.config['PLAYERS'][:]
+    g.challenges = get_challenges()
     try:
         calculate_ranking()
         get_shouts()
@@ -116,7 +122,7 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_home():
-    return render_template('index.html', shouts=g.shouts[:20], absence=app.config['ABSENCE'])
+    return render_template('index.html', shouts=g.shouts[:20])
 
 @app.route('/ranking')
 def show_ranking():
@@ -138,6 +144,15 @@ def show_games():
         games=list(reversed(g.games)),
         players=app.config['PLAYERS'],
         swaps=g.swaps,
+    )
+
+@app.route('/challenges')
+def show_challenges():
+    return render_template(
+        'show_challenges.html',
+        challenges=g.challenges,
+        players=app.config['PLAYERS'],
+        absence=app.config['ABSENCE']
     )
 
 @app.route('/games/data')
@@ -179,7 +194,7 @@ def shoutbox():
 def add_game():
     if not session.get('logged_in'):
         abort(401)
-    g.db.execute('insert into games (date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3) values (?,?,?,?,?,?,?,?,?)', [
+    g.db.execute('insert into games (date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3) values (?,?,?,?,?,?,?,?,?);', [
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             request.form['player1'],
             request.form['player2'],
@@ -193,6 +208,13 @@ def add_game():
     g.db.commit()
     flash("Game result was saved")
 
+    g.db.execute('delete from challenges where player1=? and player2=?;', [
+            request.form['player1'],
+            request.form['player2'],
+    ])
+    g.db.commit()
+    flash("Open challenge (if any) was removed")
+
     challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
     if challenger_lost:
         #save_shout('Ladder', '<b>{player1}</b> could not win from <b>{player2}</b>. <img src="/static/images/smos-unhappy.png" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
@@ -202,6 +224,56 @@ def add_game():
         save_shout('Ladder', '<b>{player1}</b> played <!-- and won --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
 
     return redirect(url_for('show_games'))
+
+@app.route('/challenges/add', methods=['POST'])
+def add_challenge():
+    if not session.get('logged_in'):
+        abort(401)
+
+    # do not log a challenge to anyone who is the source or target
+    # of another challenge
+
+    if any(chal for chal in g.challenges if chal['player1'] == request.form['player1']):
+        flash("You already have an open challenge.", 'error')
+        return redirect(url_for('show_challenges'))
+    if any(chal for chal in g.challenges if chal['player2'] == request.form['player1']):
+        flash("You are already challanged.", 'error')
+        return redirect(url_for('show_challenges'))
+    if any(chal for chal in g.challenges if chal['player1'] == request.form['player2']):
+        flash("Player {} already has an open challenge.".format(request.form['player2']), 'error')
+        return redirect(url_for('show_challenges'))
+    if any(chal for chal in g.challenges if chal['player2'] == request.form['player2']):
+        flash("Player {} is already challenged.".format(request.form['player2']), 'error')
+        return redirect(url_for('show_challenges'))
+
+    g.db.execute('insert into challenges (date, player1, player2, comment) values (?,?,?,?)', [
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+            request.form['player1'],
+            request.form['player2'],
+            request.form['comment'],
+    ])
+    g.db.commit()
+    flash("Challenge was saved")
+
+    save_shout('Ladder', "<b>{0}</b> challenged <b>{1}</b>".format(
+        request.form['player1'],
+        request.form['player2']
+    ))
+
+    return redirect(url_for('show_challenges'))
+
+@app.route('/challenges/remove', methods=['POST'])
+def remove_challenge():
+    if not session.get('logged_in'):
+        abort(401)
+
+    g.db.execute('delete from challenges where player1=?', [
+        session['username']
+    ])
+    g.db.commit()
+    flash("Your current challenge (if any) was removed")
+
+    return redirect(url_for('show_challenges'))
 
 @app.route('/shoutbox/shout', methods=['POST'])
 def add_shout():
@@ -263,7 +335,10 @@ def manage():
     cur = g.db.execute('select id, player, shout, date from shouts order by date asc')
     shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
 
-    return render_template('manage.html', games=games, shouts=shouts)
+    cur = g.db.execute('select id, date, player1, player2, comment from challenges order by date asc')
+    challenges = [dict(zip(['id', 'date', 'player1', 'player2', 'comment'], row)) for row in cur.fetchall() if row[1] != '']
+
+    return render_template('manage.html', games=games, shouts=shouts, challenges=challenges)
 
 @app.route('/internal/manage', methods=['POST'])
 def manage_query():

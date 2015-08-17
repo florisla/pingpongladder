@@ -12,6 +12,17 @@
   {% endfor %}
   </ul>
 
+  <h2>Challenges</h2>
+  {% for challenge in challenges %}
+    <li>
+    {% for key,value in challenge.items() %}
+      {{ key }} = {{ value }} <br />
+    {% endfor %}
+    </li>
+  {% endfor %}
+  </ul>
+  <br />
+
   <h2>Shouts</h2>
   {% for shout in shouts %}
     <li>
@@ -22,6 +33,8 @@
   {% endfor %}
   </ul>
   <br />
+
+
 
   <h2>Update DB</h2>
   <form action="{{ url_for('manage_query') }}" method=post>

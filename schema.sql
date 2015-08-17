@@ -12,6 +12,15 @@ create table games (
     player2_score3 integer not null
 );
 
+drop table if exists challenges;
+create table challenges (
+    id integer primary key autoincrement,
+    player1 text not null,
+    player2 text not null,
+    date text not null,
+    comment text not null
+);
+
 drop table if exists shouts;
 create table shouts (
     id integer primary key autoincrement,
