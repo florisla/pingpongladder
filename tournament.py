@@ -108,6 +108,10 @@ def before_request():
     g.ranking = app.config['PLAYERS'][:]
     g.original_ranking = app.config['PLAYERS'][:]
     g.challenges = get_challenges()
+    g.challengers = set(ch['player1'] for ch in g.challenges)
+    g.challengees = set(ch['player2'] for ch in g.challenges)
+    g.challenged_players = sorted(g.challengers.union(g.challengees))
+
     try:
         calculate_ranking()
         get_shouts()
@@ -122,7 +126,10 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_home():
-    return render_template('index.html', shouts=g.shouts[:20])
+    return render_template('index.html',
+        shouts=g.shouts[:20],
+        challenged_players=g.challenged_players
+    )
 
 @app.route('/ranking')
 def show_ranking():
@@ -134,7 +141,12 @@ def show_ranking():
 
 @app.route('/ranking/data')
 def show_ranking_json():
-    return json.jsonify(g.positions)
+    return json.jsonify(
+        positions=g.positions,
+        absences=app.config['ABSENCE'],
+        challengers=list(g.challengers),
+        challengees=list(g.challengees),
+    )
 
 @app.route('/games')
 def show_games():
@@ -174,13 +186,18 @@ def show_players():
         possible_players=possible_players,
     )
 
+@app.route('/players/data')
+def get_players_data():
+    players = {name:dict(occupied=(name in g.challenged_players)) for name in app.config['PLAYERS']}
+    return json.jsonify(players=players)
+
 @app.route('/rules')
 def show_rules():
     return render_template('show_rules.html')
 
-@app.route('/news')
-def show_news():
-    return render_template('show_news.html')
+@app.route('/stats')
+def show_stats():
+    return render_template('show_stats.html')
 
 @app.route('/shoutbox')
 def shoutbox():
@@ -218,10 +235,10 @@ def add_game():
     challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
     if challenger_lost:
         #save_shout('Ladder', '<b>{player1}</b> could not win from <b>{player2}</b>. <img src="/static/images/smos-unhappy.png" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- and lost --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- v2 and won --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
     else:
         #save_shout('Ladder', '<b>{}</b> beat <b>{}</b>. <img src="/static/images/smos-happy.jpg" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- and won --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- v2 and lost --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
 
     return redirect(url_for('show_games'))
 
@@ -328,6 +345,8 @@ def manage():
 
     if not session['username'] in app.config['ADMINS']:
         abort(401)
+
+    #flash("6-11 7-11: {}".format(player2_won([6,7], [11,11])))
 
     cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
     games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
