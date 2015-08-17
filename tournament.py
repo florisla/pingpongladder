@@ -66,8 +66,8 @@ def calculate_ranking():
         is_participating.add(player1)
         is_participating.add(player2)
 
-        challenger_won = player2_won([player1_score1, player1_score2, player1_score3], [player2_score1, player2_score2, player2_score3]);
-        if challenger_won:
+        challenger_lost = player2_won([player1_score1, player1_score2, player1_score3], [player2_score1, player2_score2, player2_score3]);
+        if challenger_lost:
             if swap_ranking(player2, player1):
                 g.swaps.append((player2, player1))
         else:
@@ -78,10 +78,17 @@ def calculate_ranking():
             challenger=dict(name=player1, rank=abs(g.positions[player1][-1])),
             challengee=dict(name=player2, rank=abs(g.positions[player2][-1])),
             scores=[(player1_score1, player2_score1), (player1_score2, player2_score2), (player1_score3, player2_score3)],
-            winner=player2 if challenger_won else player1,
+            winner=player2 if challenger_lost else player1,
             index=len(g.positions[player1]),
             date=match_date,
         ))
+
+        game_index = len(g.game_details)
+        if game_index in app.config['QUITS']:
+            for quitter in app.config['QUITS'][game_index]:
+                # move the quitter to the bottom of the ranking
+                g.ranking.remove(quitter)
+                g.ranking.append(quitter)
 
         # log all current positions for all players
         for i,player in enumerate(g.ranking):
@@ -185,20 +192,33 @@ def add_game():
     ])
     g.db.commit()
     flash("Game result was saved")
+
+    challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
+    if challenger_lost:
+        #save_shout('Ladder', '<b>{player1}</b> could not win from <b>{player2}</b>. <img src="/static/images/smos-unhappy.png" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- and lost --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+    else:
+        #save_shout('Ladder', '<b>{}</b> beat <b>{}</b>. <img src="/static/images/smos-happy.jpg" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- and won --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+
     return redirect(url_for('show_games'))
 
 @app.route('/shoutbox/shout', methods=['POST'])
 def add_shout():
     if not session.get('logged_in'):
         abort(401)
-    g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [
-            session['username'],
-            request.form['shout'],
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-    ])
-    g.db.commit()
+
+    save_shout(session['username'], request.form['shout'])
     flash('Your shout is heard.')
     return redirect(url_for('show_home'))
+
+def save_shout(player, shout):
+    g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [
+        player,
+        shout,
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+    ])
+    g.db.commit()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
