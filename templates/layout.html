@@ -1,6 +1,7 @@
 <!doctype html>
 <title>{% block title %}{% endblock %} - PingpongLadder</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="/static/images/pong.png" />
 <div class=page>
   <h1><a href="/">PingpongLadder</a></h1>
   <div class=quote>
@@ -28,4 +29,9 @@
   {% endfor %}
   
   {% block body %}{% endblock %}
+
+<hr style="clear:all" />
+<img src="/static/images/pingponggif.gif" style="margin-left:200px" /><br />
+<img src="/static/images/explorer.gif" style="margin-left:170px" /><img src="/static/images/netscape.gif" style="" />
+
 </div>
