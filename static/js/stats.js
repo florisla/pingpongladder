@@ -424,7 +424,8 @@ function graph_play_times(play_times) {
 
     y = d3.time.scale()
         .domain(d3.extent(play_times, function(d) { e=new Date(d.getTime() + 2*1000*60*60); e.setFullYear(1970, 0, 1); return e.getTime(); } ))
-        .range([height-20, 0+20]);
+        .range([height-20, 0+20])
+        .nice(d3.time.hour, 1);
 
     y_axis = d3.svg.axis()
         .scale(y)
