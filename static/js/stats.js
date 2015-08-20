@@ -422,8 +422,8 @@ function graph_play_times(play_times) {
         .domain(dates)
         .rangeRoundBands([100, width-20]);
 
-    y = d3.scale.linear()
-        .domain(d3.extent(play_times, function(d) { e=new Date(d.getTime()); e.setFullYear(1970, 0, 1); return e.getTime(); } ))
+    y = d3.time.scale()
+        .domain(d3.extent(play_times, function(d) { e=new Date(d.getTime() + 2*1000*60*60); e.setFullYear(1970, 0, 1); return e.getTime(); } ))
         .range([height-20, 0+20]);
 
     y_axis = d3.svg.axis()
@@ -435,7 +435,7 @@ function graph_play_times(play_times) {
         .attr('height', height);
 
     var axis_group = svg.append("g")
-        .attr('transform', 'translate(30,0)')
+        .attr('transform', 'translate(70,0)')
         .call(y_axis);
 
     svg.selectAll('time')
@@ -444,7 +444,7 @@ function graph_play_times(play_times) {
         .append('circle')
         .attr('r', 3)
         .attr('cx', function(d) { return x(date_format(d)); } )
-        .attr('cy', function(d) { e=new Date(d.getTime()); e.setFullYear(1970, 0, 1); return y(e.getTime()); } )
+        .attr('cy', function(d) { e=new Date(d.getTime() + 2*1000*60*60); e.setFullYear(1970, 0, 1); return y(e.getTime()); } )
         .attr('fill', 'gray')
         .attr('opacity', '0.6')
 
