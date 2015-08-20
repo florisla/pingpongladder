@@ -265,8 +265,16 @@ def add_game():
     g.db.commit()
     flash("Open challenge (if any) was removed")
 
-    # find nicknames in the tags table
-    cur = g.db.execute("select tag from tags where player =?", [request.form['player2']])
+    challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
+    if challenger_lost:
+        winner = request.form['player2']
+        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}'
+    else:
+        winner = request.form['player1']
+        shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}'
+
+    # find winner's nickname in the tags table
+    cur = g.db.execute("select tag from tags where player =?", [winner])
     tags = [row[0] for row in cur.fetchall()]
 
     nickname = ''
@@ -275,33 +283,18 @@ def add_game():
             random.choice(tags)
         )
 
-    challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
-    if challenger_lost:
-        #save_shout('Ladder', '<b>{player1}</b> could not win from <b>{player2}</b>. <img src="/static/images/smos-unhappy.png" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- v4 and lost --> {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(
-            player1=request.form['player1'],
-            player2=request.form['player2'],
-            nick=nickname,
-            player1_score1=request.form['player1_score1'],
-            player1_score2=request.form['player1_score2'],
-            player1_score3=request.form['player1_score3'],
-            player2_score1=request.form['player2_score1'],
-            player2_score2=request.form['player2_score2'],
-            player2_score3=request.form['player2_score3'],
-        ))
-    else:
-        #save_shout('Ladder', '<b>{}</b> beat <b>{}</b>. <img src="/static/images/smos-happy.jpg" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- v4 and won --> {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(
-            player1=request.form['player1'],
-            player2=request.form['player2'],
-            nick=nickname,
-            player1_score1=request.form['player1_score1'],
-            player1_score2=request.form['player1_score2'],
-            player1_score3=request.form['player1_score3'],
-            player2_score1=request.form['player2_score1'],
-            player2_score2=request.form['player2_score2'],
-            player2_score3=request.form['player2_score3'],
-        ))
+    save_shout('Ladder', shout_message.format(
+        player1=request.form['player1'],
+        player2=request.form['player2'],
+        nick=nickname,
+        player1_score1=request.form['player1_score1'],
+        player1_score2=request.form['player1_score2'],
+        player1_score3=request.form['player1_score3'],
+        player2_score1=request.form['player2_score1'],
+        player2_score2=request.form['player2_score2'],
+        player2_score3=request.form['player2_score3'],
+        dash='-' if request.form['player1_score3'] else '',
+    ))
 
     return redirect(url_for('show_games'))
 
