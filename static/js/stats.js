@@ -3,11 +3,16 @@ d3.json("http://florisla.pythonanywhere.com/games/data", function(games) {
     challenges_won_per_date = lost_won_per_day(games.game_details);
     games_per_player = games_per_player(games.game_details);
     play_times = games_time_per_day(games.game_details);
+    three_set_rate = three_sets_per_day(games.game_details);
+    scores = score_counts(games.game_details);
 
     graph_match_rate(matches_per_date);
-    graph_lost_won_rate(challenges_won_per_date);
+    graph_lost_won_per_day(challenges_won_per_date);
     graph_games_per_player(games_per_player);
+    graph_lost_won_rate_per_player(games_per_player);
     graph_play_times(play_times);
+    graph_three_sets_per_day(three_set_rate);
+    graph_score_counts(scores);
 })
 
 function game_count_per_day(game_details) {
@@ -38,6 +43,26 @@ function lost_won_per_day(game_details) {
         }
         else {
             dates[date]['lost'] += 1;
+        }
+    }
+    return dates;
+}
+
+function three_sets_per_day(game_details) {
+    dates = [];
+    for (var game in game_details) {
+        details = game_details[game];
+        date = details.date.substring(0,10);
+        if (! (date in dates)) {
+            // two-set matches , three-set matches
+            dates[date] = [0,0];
+        }
+
+        if (details.scores[2][0] == '') {
+            dates[date][0] += 1;
+        }
+        else {
+            dates[date][1] += 1;
         }
     }
     return dates;
@@ -78,6 +103,7 @@ function games_per_player(game_details) {
     for (var name in players) {
         player = players[name];
         player.total_games = player.challenges + player.defenses;
+        player.total_games_won = player.challengeswon + player.defenseswon;
     }
     return players;
 }
@@ -90,6 +116,27 @@ function games_time_per_day (game_details) {
         dates.push(date_time);
     }
     return dates;
+}
+
+function score_counts(game_details) {
+    scores = [];
+    for (var i=0; i<20; i++) {
+        scores[i] = 0;
+    }
+
+    for (var i in game_details) {
+        game = game_details[i];
+        for (var j in game.scores) {
+            score = game.scores[j];
+            highest_score = Math.max(score[0], score[1]);
+            lowest_score = Math.min(score[0], score[1]);
+            if (highest_score == 0) {
+                continue;
+            }
+            scores[lowest_score] += 1
+        }
+    }
+    return scores;
 }
 
 function graph_match_rate(match_rate) {
@@ -136,7 +183,7 @@ function graph_match_rate(match_rate) {
         .attr("fill", "white");
 }
 
-function graph_lost_won_rate(dates) {
+function graph_lost_won_per_day(dates) {
 
     var dates = d3.entries(dates);
 
@@ -209,7 +256,8 @@ function graph_lost_won_rate(dates) {
         .attr('y', 18)
         .text(function(d) { return Math.round(100*d.value.won/(d.value.won+d.value.lost)) + '%'; } )
         .attr('fill', 'black')
-        .attr('text-anchor', 'middle');
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '0.7em');
 }
 
 function graph_games_per_player(games_per_player) {
@@ -401,6 +449,89 @@ function graph_games_per_player(games_per_player) {
         .attr('font-size', 10);
 }
 
+function graph_lost_won_rate_per_player(games_per_player) {
+    games_per_player = d3.entries(games_per_player);
+
+    var width = 500;
+    var height = 500;
+
+    var most_won = d3.max(games_per_player, function(d) { return d.value.total_games_won; } );
+    var most_lost = d3.max(games_per_player, function(d) { return d.value.total_games - d.value.total_games_won; } );
+    var most = d3.max([most_won, most_lost])
+
+    x = d3.scale.linear()
+        .domain([0, most_lost])
+        .range([0,  width - 100]);
+
+    y = d3.scale.linear()
+        .domain([0, most_won])
+        .range([height-30, 0]);
+
+    svg = d3.select('.winrate')
+        .attr('width', width)
+        .attr('height', height);
+
+    x_axis = d3.svg.axis()
+        .scale(x)
+        .orient('left');
+
+    y_axis = d3.svg.axis()
+        .scale(y)
+        .orient('bottom');
+
+    x_axis_group = svg.append('g')
+        .attr('id', 'axes')
+        .attr('transform', 'translate(30,0)')
+        //.call(x_axis);
+
+    y_axis_group = svg.append('g')
+        .attr('id', 'axes')
+        .attr('transform', 'translate(0,480)')
+        //.call(y_axis);
+
+    meta = svg.append('g');
+
+    meta.append('line')
+        .attr('x1', x(0))
+        .attr('x2', x(most_lost))
+        .attr('y1', y(0))
+        .attr('y2', y(most_won))
+        .attr('stroke', 'black')
+        .attr('opacity', '0.2');
+
+    meta.append('text')
+        .attr('x', x(most_lost))
+        .attr('y', y(most_won-1))
+        .attr('fill', 'black')
+        .attr('opacity', '0.3')
+        .text('50%')
+
+    players = svg.append('g')
+        .attr('id', 'players')
+        .attr('transform', 'translate(40,20)');
+
+    players.selectAll('.lost_vs_won')
+        .data(games_per_player)
+        .enter()
+        .append('circle')
+        .attr('class', 'playerdot')
+        .attr('cx', function(d) { return x(d.value.total_games - d.value.total_games_won); } )
+        .attr('cy', function(d) { return y(d.value.total_games_won); } )
+        .attr('r', 5)
+        .attr('fill', 'steelblue');
+
+    players.selectAll('.lost_vs_won')
+        .data(games_per_player)
+        .enter()
+        .append('text')
+        .attr('class', 'playername')
+        .attr('x', function(d) { return 5 + x(d.value.total_games - d.value.total_games_won); } )
+        .attr('y', function(d) { return 3 + y(d.value.total_games_won); } )
+        .text(function(d) { return d.key; } )
+        .attr('fill', 'black')
+        .attr('font-size', '0.6em');
+}
+
 function graph_play_times(play_times) {
 
     var width = 500;
@@ -448,5 +579,140 @@ function graph_play_times(play_times) {
         .attr('cy', function(d) { e=new Date(d.getTime() + 2*1000*60*60); e.setFullYear(1970, 0, 1); return y(e.getTime()); } )
         .attr('fill', 'gray')
         .attr('opacity', '0.6')
+
+}
+
+function graph_three_sets_per_day(dates) {
+
+    var dates = d3.entries(dates);
+
+    var width = 500;
+    var height = 300;
+    var margin_horizontal = 20;
+    var margin_vertical = 25;
+
+    var total_bar_width = (width - margin_horizontal*2) / dates.length;
+    var bar_width = total_bar_width * 0.8;
+    var bar_spacing = total_bar_width * 0.2;
+
+    var most_two = d3.max(dates, function(d) { return d.value[0]; } );
+    var most_three = d3.max(dates, function(d) { return d.value[1]; } );
+    var most_any = d3.max([most_two, most_three]);
+
+    y = d3.scale.linear()
+        .domain([0, most_any])
+        .range([0, height/2 - margin_vertical]);
+
+    svg = d3.select('.threesetrate')
+        .attr('width', width)
+        .attr('height', height)
+
+    svg.selectAll('.twoset')
+        .data(dates)
+        .enter()
+        .append('rect')
+        .attr('width', bar_width)
+        .attr('height', function(d) { return y(d.value[0]); } )
+        .attr('fill', 'steelblue')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { return margin_vertical + y(most_any) - y(d.value[0]); } );
+
+    svg.selectAll('.twosetnr')
+        .data(dates)
+        .enter()
+        .append('text')
+        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
+        .attr('y', function(d) { return margin_vertical + 15 + y(most_any) - y(d.value[0]); } )
+        .text(function(d) { if (d.value[0] <= 1) {return '';} return d.value[0]; } )
+        .attr('fill', 'white')
+        .attr('text-anchor', 'middle');
+
+    svg.selectAll('.threeset')
+        .data(dates)
+        .enter()
+        .append('rect')
+        .attr('width', bar_width)
+        .attr('height', function(d) { return y(d.value[1]); } )
+        .attr('fill', 'green')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', height/2);
+
+    svg.selectAll('.threesetnr')
+        .data(dates)
+        .enter()
+        .append('text')
+        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
+        .attr('y', function(d) { return height/2 -2 + y(d.value[1]); } )
+        .text(function(d) { if (d.value[1] <= 1) {return '';} return d.value[1]; } )
+        .attr('fill', 'white')
+        .attr('text-anchor', 'middle');
+
+
+    svg.selectAll('.percentage')
+        .data(dates)
+        .enter()
+        .append('text')
+        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
+        .attr('y', 18)
+        .text(function(d) { return Math.round(100*d.value[0]/(d.value[0] + d.value[1])) + '%'; } )
+        .attr('fill', 'black')
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '0.7em');
+}
+
+function graph_score_counts(scores) {
+
+    var scores = d3.entries(scores);
+
+    var width = 500;
+    var height = 350;
+    var margin_horizontal = 20;
+    var margin_vertical = 25;
+
+    var max_count = d3.max(scores, function(d) { return d.value; } );
+
+    var total_bar_width = (width - margin_horizontal*2) / scores.length;
+    var bar_width = total_bar_width * 0.8;
+    var bar_spacing = total_bar_width * 0.2;
+
+    y = d3.scale.linear()
+        .domain([0, max_count])
+        .range([0, height - margin_vertical]);
+
+    svg = d3.select('.scores')
+        .attr('width', width)
+        .attr('height', height)
+
+    svg.selectAll('.twoset')
+        .data(scores)
+        .enter()
+        .append('rect')
+        .attr('width', bar_width)
+        .attr('height', function(d) { return y(d.value); } )
+        .attr('fill', 'steelblue')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { return y(max_count) - y(d.value); } );
+
+    svg.selectAll('.scorelabel')
+        .data(scores)
+        .enter()
+        .append('text')
+        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
+        .attr('y', 340)
+        .text(function(d) { return d.key + '-' + Math.max(parseInt(d.key) + 2, 11); } )
+        .attr('fill', 'black')
+        .attr('font-size', '0.6em')
+        .attr('text-anchor', 'middle');
+
+    svg.selectAll('.scorecountlabel')
+        .data(scores)
+        .enter()
+        .append('text')
+        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
+        .attr('y', function(d) { return 15 + y(max_count) - y(d.value); })
+        .text(function(d) { count = parseInt(d.value);  if (count <= 3) { return ''; } return count; } )
+        .attr('fill', 'white')
+        .attr('font-size', '0.6em')
+        .attr('text-anchor', 'middle');
 
 }
