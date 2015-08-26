@@ -1,4 +1,15 @@
 
+drop table if exists players;
+create table players (
+    id integer primary key autoincrement,
+    name text not null,
+    full_name text not null,
+    initial_rank integer not null,
+    absence text,
+    rank_drop_at_game integer
+);
+
+
 drop table if exists games;
 create table games (
     id integer primary key autoincrement,
