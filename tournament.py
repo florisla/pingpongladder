@@ -36,8 +36,8 @@ def player2_won(player1_scores, player2_scores):
     return 1 < len([score for score in zip(player1_scores, player2_scores) if score[1] > score[0]])
 
 def get_shouts():
-    cur = g.db.execute('select player, shout, date from shouts order by date desc, id desc')
-    g.shouts = [dict(zip(['player', 'shout', 'date'], row)) for row in cur.fetchall()]
+    cur = g.db.execute('select player, shout, date, id from shouts order by date desc, id desc')
+    g.shouts = [dict(zip(['player', 'shout', 'date', 'id'], row)) for row in cur.fetchall()]
 
 def calculate_ranking():
     if hasattr(g, 'swaps'):
@@ -125,7 +125,8 @@ def teardown_request(exception):
 def show_home():
     return render_template('index.html',
         shouts=g.shouts[:20],
-        challenged_players=g.challenged_players
+        challenged_players=g.challenged_players,
+        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
     )
 
 @app.route('/ranking')
@@ -215,6 +216,7 @@ def shoutbox():
     return render_template(
         'show_shoutbox.html',
         shouts = g.shouts,
+        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
     )
 
 @app.route('/player/tag/add', methods=['POST'])
@@ -356,6 +358,41 @@ def add_shout():
     save_shout(session['username'], request.form['shout'])
     flash('Your shout is heard.')
     return redirect(url_for('show_home'))
+
+@app.route('/shoutbox/edit/<int:shout_id>', methods=['GET', 'POST'])
+def edit_shout(shout_id):
+    if not session.get('logged_in'):
+        abort(401)
+    if not session['username'] in app.config['ADMINS']:
+        abort(401)
+
+    if request.method == 'GET':
+        shout = next(iter(s for s in g.shouts if s['id']==shout_id))
+        return render_template('edit-shout.html', shout=shout)
+    if request.method == 'POST':
+        g.db.execute('update shouts set shout=? where id=?;', [
+            request.form['shout'],
+            shout_id,
+        ])
+        g.db.commit()
+        flash('Shout has been updated.')
+        return redirect(url_for('shoutbox'))
+
+    abort(401)
+
+@app.route('/shoutbox/delete/<int:shout_id>', methods=['POST'])
+def remove_shout(shout_id):
+    if not session.get('logged_in'):
+        abort(401)
+    if not session['username'] in app.config['ADMINS']:
+        abort(401)
+
+    g.db.execute('delete from shouts where id=?;', [
+        shout_id,
+    ])
+    g.db.commit()
+    flash('Shout has been deleted.')
+    return redirect(url_for('shoutbox'))
 
 def save_shout(player, shout):
     g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [

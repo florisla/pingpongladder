@@ -30,3 +30,5 @@ ul.shouts li    { margin-bottom: 0.7em; }
 .player-name    { font-weight: bold; }
 .player-full-name{font-size: 0.75em; }
 .tag            { font-family: Courier}
+.jurymessage    {background:#EEE; font-size:0.8em; margin:1em 2em}
+.jurymessage::after { content: " -- Jury"}
