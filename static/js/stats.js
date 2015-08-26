@@ -169,14 +169,14 @@ function graph_match_rate(match_rate) {
         .attr('x', function(d, i) { return margin_horizontal + total_bar_width * i; } )
         .attr('y', function(d, i) { return height - y(d.value); } )
         .attr('width', barWidth)
-        .attr('height', function(d, i) { return y(d.value); } )
+        .attr('height', function(d) { return y(d.value); } )
         .attr('fill', 'steelblue')
 
     dateBar.selectAll(".matchcountlabel")
         .data(match_rate)
         .enter()
         .append("svg:text")
-        .attr("x", function(d, i) { return -8 + margin_horizontal + total_bar_width/2 + total_bar_width * i; })
+        .attr("x", function(d, i) { return -5 + margin_horizontal + total_bar_width/2 + total_bar_width * i; })
         .attr("y", function(d) { return 20 + height - y(d.value); })
         .attr("text-anchor", "middle")
         .text(function(d) { if (d.value <= 1) {return '';} return d.value;} )
@@ -458,6 +458,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
     var most_won = d3.max(games_per_player, function(d) { return d.value.total_games_won; } );
     var most_lost = d3.max(games_per_player, function(d) { return d.value.total_games - d.value.total_games_won; } );
     var most = d3.max([most_won, most_lost])
+    var least = d3.min([most_won, most_lost])
 
     x = d3.scale.linear()
         .domain([0, most_lost])
@@ -489,22 +490,60 @@ function graph_lost_won_rate_per_player(games_per_player) {
         .attr('transform', 'translate(0,480)')
         //.call(y_axis);
 
-    meta = svg.append('g');
+    meta = svg.append('g')
+        .attr('id', 'meta')
+        .attr('transform', 'translate(40,20)');
 
     meta.append('line')
+        .attr('id', 'perc50')
         .attr('x1', x(0))
-        .attr('x2', x(most_lost))
+        .attr('x2', x(most))
         .attr('y1', y(0))
-        .attr('y2', y(most_won))
+        .attr('y2', y(most))
+        .attr('stroke', 'black')
+        .attr('opacity', '0.2');
+
+    meta.append('line')
+        .attr('id', 'perc66')
+        .attr('x1', x(0))
+        .attr('x2', x(most))
+        .attr('y1', y(0))
+        .attr('y2', y(most*2))
+        .attr('stroke', 'black')
+        .attr('opacity', '0.2');
+
+    meta.append('line')
+        .attr('id', 'perc33')
+        .attr('x1', x(0))
+        .attr('x2', x(most))
+        .attr('y1', y(0))
+        .attr('y2', y(most/2))
         .attr('stroke', 'black')
         .attr('opacity', '0.2');
 
     meta.append('text')
-        .attr('x', x(most_lost))
-        .attr('y', y(most_won-1))
+        .attr('id', 'label50perc')
+        .attr('x', x(least))
+        .attr('y', y(least-1))
         .attr('fill', 'black')
         .attr('opacity', '0.3')
         .text('50%')
+
+    meta.append('text')
+        .attr('id', 'label66perc')
+        .attr('x', x(7))
+        .attr('y', y(most_won))
+        .attr('fill', 'black')
+        .attr('opacity', '0.3')
+        .text('66%')
+
+    meta.append('text')
+        .attr('id', 'label33perc')
+        .attr('x', x(most_lost-3))
+        .attr('y', y(9))
+        .attr('fill', 'black')
+        .attr('opacity', '0.3')
+        .text('33%')
 
     players = svg.append('g')
         .attr('id', 'players')
@@ -515,7 +554,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
         .enter()
         .append('circle')
         .attr('class', 'playerdot')
-        .attr('cx', function(d) { return x(d.value.total_games - d.value.total_games_won); } )
+        .attr('cx', function(d) { console.log(x(d.value.total_games - d.value.total_games_won)); return x(d.value.total_games - d.value.total_games_won); } )
         .attr('cy', function(d) { return y(d.value.total_games_won); } )
         .attr('r', 5)
         .attr('fill', 'steelblue');
