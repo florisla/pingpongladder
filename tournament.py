@@ -474,3 +474,8 @@ def manage_query():
 
     flash('Query is executed')
     return redirect(url_for('manage'))
+
+
+if __name__ == '__main__':
+    app.run()
+
