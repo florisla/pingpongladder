@@ -21,7 +21,8 @@ create table games (
     player1_score2 integer not null,
     player2_score2 integer not null,
     player1_score3 integer not null,
-    player2_score3 integer not null
+    player2_score3 integer not null,
+    comment text not null
 );
 
 

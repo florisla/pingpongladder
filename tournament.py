@@ -246,7 +246,10 @@ def add_tag():
 def add_game():
     if not session.get('logged_in'):
         abort(401)
-    g.db.execute('insert into games (date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3) values (?,?,?,?,?,?,?,?,?);', [
+
+    comment = request.form['comment'] if 'comment' in request.form else ''
+
+    g.db.execute('insert into games (date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3, comment) values (?,?,?,?,?,?,?,?,?,?);', [
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             request.form['player1'],
             request.form['player2'],
@@ -256,6 +259,7 @@ def add_game():
             request.form['player2_score2'],
             request.form['player1_score3'],
             request.form['player2_score3'],
+            comment,
     ])
     g.db.commit()
     flash("Game result was saved")
@@ -270,10 +274,13 @@ def add_game():
     challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
     if challenger_lost:
         winner = request.form['player2']
-        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}'
+        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
     else:
         winner = request.form['player1']
-        shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}'
+        shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
+
+    if len(comment) > 0:
+        comment = '<div class="gamecomment">{0}</div>'.format(comment)
 
     # find winner's nickname in the tags table
     cur = g.db.execute("select tag from tags where player =?", [winner])
@@ -296,6 +303,7 @@ def add_game():
         player2_score2=request.form['player2_score2'],
         player2_score3=request.form['player2_score3'],
         dash='-' if request.form['player1_score3'] else '',
+        comment=comment
     ))
 
     return redirect(url_for('show_games'))
@@ -457,8 +465,12 @@ def manage_query():
     if not session['username'] in app.config['ADMINS']:
         abort(401)
 
-    g.db.execute(request.form['query'])
-    g.db.commit()
+    try:
+        g.db.execute(request.form['query'])
+        g.db.commit()
+    except Exception as e:
+        flash(e)
+        return redirect(url_for('manage'))
 
     flash('Query is executed')
     return redirect(url_for('manage'))
