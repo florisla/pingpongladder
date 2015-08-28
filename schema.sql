@@ -6,7 +6,8 @@ create table players (
     full_name text not null,
     initial_rank integer not null,
     absence text,
-    rank_drop_at_game integer
+    rank_drop_at_game integer,
+    admin integer not null default 0
 );
 
 

@@ -101,8 +101,8 @@ def get_challenges():
     return challenges
 
 def get_players():
-    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game from players;')
-    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game'], row)) for row in cur.fetchall()]
+    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players;')
+    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
     players = {p['name']:p for p in player_list}
     return players
 
@@ -125,6 +125,7 @@ def before_request():
         name:details['rank_drop_at_game'] for name,details in g.players.items()
         if details['rank_drop_at_game'] is not None
     }
+    g.admins = [player['name'] for player in g.players.values() if player['admin'] == 1]
 
     try:
         calculate_ranking()
@@ -143,7 +144,7 @@ def show_home():
     return render_template('index.html',
         shouts=g.shouts[:20],
         challenged_players=g.challenged_players,
-        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
+        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/ranking')
@@ -233,7 +234,7 @@ def shoutbox():
     return render_template(
         'show_shoutbox.html',
         shouts = g.shouts,
-        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
+        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/player/tag/add', methods=['POST'])
@@ -388,7 +389,7 @@ def add_shout():
 def edit_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     if request.method == 'GET':
@@ -409,7 +410,7 @@ def edit_shout(shout_id):
 def remove_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     g.db.execute('delete from shouts where id=?;', [
@@ -429,7 +430,6 @@ def save_shout(player, shout):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     error = None
     if request.method == 'POST':
         hasher = hashlib.sha512()
@@ -458,9 +458,9 @@ def logout():
 @app.route('/internal/manage')
 def manage():
     if not session.get('logged_in'):
-        abort(401)
+        return redirect(url_for('login'))
 
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
@@ -477,9 +477,9 @@ def manage():
 @app.route('/internal/manage', methods=['POST'])
 def manage_query():
     if not session.get('logged_in'):
-        abort(401)
+        return redirect(url_for('login'))
 
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     try:
