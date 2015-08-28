@@ -3,3 +3,4 @@ database.db
 .idea/
 venv/
 configuration.py
+static/images/
