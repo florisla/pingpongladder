@@ -2,10 +2,12 @@ d3.json("http://florisla.pythonanywhere.com/games/data", function(games) {
     matches_per_date = game_count_per_day(games.game_details);
     challenges_won_per_date = lost_won_per_day(games.game_details);
     games_per_player = games_per_player(games.game_details);
+    play_times = games_time_per_day(games.game_details);
 
     graph_match_rate(matches_per_date);
     graph_lost_won_rate(challenges_won_per_date);
     graph_games_per_player(games_per_player);
+    graph_play_times(play_times);
 })
 
 function game_count_per_day(game_details) {
@@ -47,14 +49,30 @@ function games_per_player(game_details) {
         details = game_details[game];
 
         if (! (details.challenger.name in players)) {
-            players[details.challenger.name] = {challenges:0, defenses:0};
+            players[details.challenger.name] = {
+                challenges:0,
+                challengeswon:0,
+                defenses:0,
+                defenseswon:0
+            };
         }
         if (! (details.challengee.name in players)) {
-            players[details.challengee.name] = {challenges:0, defenses:0};
+            players[details.challengee.name] = {
+                challenges:0,
+                challengeswon:0,
+                defenses:0,
+                defenseswon:0
+            };
         }
 
         players[details.challenger.name].challenges += 1;
+        if (details.challenger.name == details.winner) {
+            players[details.challenger.name].challengeswon += 1;
+        }
         players[details.challengee.name].defenses += 1;
+        if (details.challengee.name == details.winner) {
+            players[details.challengee.name].defenseswon += 1;
+        }
 
     }
     for (var name in players) {
@@ -62,6 +80,16 @@ function games_per_player(game_details) {
         player.total_games = player.challenges + player.defenses;
     }
     return players;
+}
+
+function games_time_per_day (game_details) {
+    date_time_format = d3.time.format('%Y-%m-%d %H:%M');
+    dates = [];
+    for (var game in game_details) {
+        date_time = date_time_format.parse(game_details[game].date);
+        dates.push(date_time);
+    }
+    return dates;
 }
 
 function graph_match_rate(match_rate) {
@@ -198,12 +226,12 @@ function graph_games_per_player(games_per_player) {
     });
 
     var width = 500;
-    var height = 500;
+    var height = 600;
     var margin_horizontal = 40;
     var margin_vertical = 25;
     var total_bar_height = (height - 2*margin_vertical) / games_per_player.length;
-    var bar_height = 0.7 * total_bar_height;
-    var bar_spacing = 0.3 * total_bar_height;
+    var bar_height = 0.5 * total_bar_height;
+    var bar_spacing = 0.4 * total_bar_height;
 
     var most_played = d3.max(games_per_player, function(d) { return d.value.total_games; } );
 
@@ -218,55 +246,147 @@ function graph_games_per_player(games_per_player) {
     g = svg.append('g')
         .attr('transform', 'translate(20,12)');
 
-    g.selectAll('.challenges')
+    legend = svg.append('g')
+        .attr('id', 'legend')
+        .attr('transform', 'translate(' + (width-100) + ', 180)');
+
+    legend.append('rect')
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('x', 0)
+        .attr('y', 10)
+        .attr('fill', 'green');
+
+    legend.append('rect')
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('x', 0)
+        .attr('y', 30)
+        .attr('fill', 'indianred');
+
+    legend.append('rect')
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('x', 0)
+        .attr('y', 50)
+        .attr('fill', 'lightgreen');
+
+    legend.append('rect')
+        .attr('width', 10)
+        .attr('height', 10)
+        .attr('x', 0)
+        .attr('y', 70)
+        .attr('fill', 'red');
+
+    legend.append('text')
+        .attr('x', 18)
+        .attr('y', 17)
+        .attr('fill', 'black')
+        .attr('font-size', 8)
+        .text('Challenges won')
+
+    legend.append('text')
+        .attr('x', 18)
+        .attr('y', 37)
+        .attr('fill', 'black')
+        .attr('font-size', 8)
+        .text('Challenges lost')
+
+    legend.append('text')
+        .attr('x', 18)
+        .attr('y', 57)
+        .attr('fill', 'black')
+        .attr('font-size', 8)
+        .text('Defenses won')
+
+    legend.append('text')
+        .attr('x', 18)
+        .attr('y', 77)
+        .attr('fill', 'black')
+        .attr('font-size', 8)
+        .text('Defenses lost')
+
+    g.selectAll('.challengeswon')
         .data(games_per_player)
         .enter()
         .append('rect')
         .attr('x', 0)
         .attr('y', function(d,i) { return i*total_bar_height; } )
-        .attr('width', function(d,i) { return x(d.value.challenges); } )
+        .attr('width', function(d,i) { return x(d.value.challengeswon); } )
         .attr('height', bar_height)
         .attr('class', 'challenges')
         .attr('id', function(d) { return d.key; } )
-        .attr('fill', 'purple');
+        .attr('fill', 'green');
 
-    g.selectAll('.challenge')
+    g.selectAll('.challengeslost')
         .data(games_per_player)
         .enter()
         .append('rect')
-        .attr('x', function(d) { return x(d.value.challenges); } )
+        .attr('x', function(d) { return x(d.value.challengeswon); } )
         .attr('y', function(d,i) { return i*total_bar_height; } )
-        .attr('width', function(d,i) { return x(d.value.defenses); } )
+        .attr('width', function(d) { return x(d.value.challenges - d.value.challengeswon); } )
         .attr('height', bar_height)
-        .attr('fill', 'steelblue');
+        .attr('class', 'challenges')
+        .attr('id', function(d) { return d.key; } )
+        .attr('fill', 'indianred');
 
-    g.selectAll('.challengenr')
+    g.selectAll('.challengelostnr')
         .data(games_per_player)
         .enter()
         .append('text')
         .attr('x', function(d) { return -17 + x(d.value.challenges); })
-        .attr('y', function(d,i) { return (i+0.6) * total_bar_height; } )
-        .text(function(d) { return d.value.challenges; })
+        .attr('y', function(d,i) { return (i+0.45) * total_bar_height; } )
+        .text(function(d) { if ((d.value.challenges - d.value.challengeswon) > 0) { return d.value.challenges - d.value.challengeswon; } return ''; } )
         .attr('fill', 'white')
         .attr('font-size', 10);
 
-    g.selectAll('.defense')
+    g.selectAll('.challengewonnr')
+        .data(games_per_player)
+        .enter()
+        .append('text')
+        .attr('x', function(d) { return -17 + x(d.value.challengeswon); })
+        .attr('y', function(d,i) { return (i+0.45) * total_bar_height; } )
+        .text(function(d) { if (d.value.challenges > 0) { return d.value.challengeswon; } return ''; } )
+        .attr('fill', 'white')
+        .attr('font-size', 10);
+
+    g.selectAll('.defenseswon')
         .data(games_per_player)
         .enter()
         .append('rect')
         .attr('x', function(d) { return x(d.value.challenges); } )
         .attr('y', function(d,i) { return i*total_bar_height; } )
-        .attr('width', function(d,i) { return x(d.value.defenses); } )
+        .attr('width', function(d) { return x(d.value.defenseswon); } )
         .attr('height', bar_height)
-        .attr('fill', 'steelblue');
+        .attr('fill', 'lightgreen');
 
-    g.selectAll('.defensenr')
+    g.selectAll('.defenseslost')
+        .data(games_per_player)
+        .enter()
+        .append('rect')
+        .attr('x', function(d) { return x(d.value.challenges) + x(d.value.defenseswon); } )
+        .attr('y', function(d,i) { return i*total_bar_height; } )
+        .attr('width', function(d) { return x(d.value.defenses - d.value.defenseswon); } )
+        .attr('height', bar_height)
+        .attr('fill', 'red');
+
+    g.selectAll('.defensewonnr')
+        .data(games_per_player)
+        .enter()
+        .append('text')
+        .attr('x', function(d) { return -15 + x(d.value.total_games - d.value.defenses + d.value.defenseswon); })
+        .attr('y', function(d,i) { return (i+0.45) * total_bar_height; } )
+        .text(function(d) { if (d.value.defenseswon > 0) { return d.value.defenseswon; } return ''; })
+        .attr('fill', 'white')
+        .attr('font-size', 10);
+
+    g.selectAll('.defenselostnr')
         .data(games_per_player)
         .enter()
         .append('text')
         .attr('x', function(d) { return -15 + x(d.value.total_games); })
-        .attr('y', function(d,i) { return (i+0.6) * total_bar_height; } )
-        .text(function(d) { return d.value.defenses; })
+        .attr('y', function(d,i) { return (i+0.45) * total_bar_height; } )
+        .text(function(d) { if ((d.value.defenses - d.value.defenseswon)> 0) { return d.value.defenses - d.value.defenseswon; } return ''; })
         .attr('fill', 'white')
         .attr('font-size', 10);
 
@@ -275,8 +395,57 @@ function graph_games_per_player(games_per_player) {
         .enter()
         .append('text')
         .attr('x', function(d) { return 5 + x(d.value.total_games); })
-        .attr('y', function(d,i) { return (i+0.6) * total_bar_height; } )
+        .attr('y', function(d,i) { return (i+0.45) * total_bar_height; } )
         .text(function(d) { return d.key; })
         .attr('fill', 'black')
         .attr('font-size', 10);
+}
+
+function graph_play_times(play_times) {
+
+    var width = 500;
+    var height = 500;
+
+    date_format = d3.time.format('%Y-%m-%d');
+
+    dates = [];
+    for (i in play_times) {
+        play_time = play_times[i];
+        date = date_format(play_time);
+
+        if (dates.indexOf(date) < 0) {
+            dates.push(date);
+        }
+    }
+
+    x = d3.scale.ordinal()
+        .domain(dates)
+        .rangeRoundBands([100, width-20]);
+
+    y = d3.scale.linear()
+        .domain(d3.extent(play_times, function(d) { e=new Date(d.getTime()); e.setFullYear(1970, 0, 1); return e.getTime(); } ))
+        .range([height-20, 0+20]);
+
+    y_axis = d3.svg.axis()
+        .scale(y)
+        .orient('left');
+
+    svg = d3.select('.playtimes')
+        .attr('width', width)
+        .attr('height', height);
+
+    var axis_group = svg.append("g")
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
+
+    svg.selectAll('time')
+        .data(play_times)
+        .enter()
+        .append('circle')
+        .attr('r', 3)
+        .attr('cx', function(d) { return x(date_format(d)); } )
+        .attr('cy', function(d) { e=new Date(d.getTime()); e.setFullYear(1970, 0, 1); return y(e.getTime()); } )
+        .attr('fill', 'gray')
+        .attr('opacity', '0.6')
+
 }
