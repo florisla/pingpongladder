@@ -1,6 +1,6 @@
 
 var width = 800;
-var height = 500;
+var height = 600;
 var graph_offset_x = 18;
 var game_count = 15;
 var player_count = 25;
