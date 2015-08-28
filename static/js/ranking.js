@@ -36,7 +36,6 @@ function setup_scales() {
     if (scales.length == 0) {
         total_width = game_width * game_count + 0;
         full_view_scale = (width-100) / total_width;
-        console.log(full_view_scale);
         scale = full_view_scale;
         while (scale < 2.4)
         {
