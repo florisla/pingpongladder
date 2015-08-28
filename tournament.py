@@ -29,15 +29,11 @@ def swap_ranking(winner, loser):
     return 1
 
 def player2_won(player1_scores, player2_scores):
-    player2_won = 0
-    if player1_scores[0] < player2_scores[0]:
-        player2_won += 1
-    if player1_scores[1] < player2_scores[1]:
-        player2_won += 1
-    if player1_scores[2] < player2_scores[2]:
-        player2_won += 1
+    if isinstance(player1_scores[0], str):
+        player1_scores = [int(score) if len(score) > 0 else 0 for score in player1_scores]
+        player2_scores = [int(score) if len(score) > 0 else 0 for score in player2_scores]
 
-    return player2_won > 1
+    return 1 < len([score for score in zip(player1_scores, player2_scores) if score[1] > score[0]])
 
 def get_shouts():
     cur = g.db.execute('select player, shout, date from shouts order by date desc, id desc')
