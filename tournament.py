@@ -412,8 +412,6 @@ def manage():
     if not session['username'] in app.config['ADMINS']:
         abort(401)
 
-    #flash("6-11 7-11: {}".format(player2_won([6,7], [11,11])))
-
     cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
     games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
 
