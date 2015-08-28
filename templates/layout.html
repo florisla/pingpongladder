@@ -8,26 +8,23 @@
   ‘Play the ball, not the opponent’
   </div>
   <div class=metanav>
-    <a href="/">Home</a>
-    <a href="/ranking">Ranking</a>
-    <a href="/games">Games</a>
-    <a href="/challenges">Challenges</a>
-    <a href="/stats">Stats</a>
-    <a href="/players">Players</a>
-    <a href="/rules">Rules</a>
-    <a href="/news">News</a>
-    <a href="/shoutbox">Shoutbox</a>
-    {% if not session.logged_in %}
+  <a href="/">Home</a>
+  <a href="/ranking">Ranking</a>
+  <a href="/games">Games</a>
+  <a href="/challenges">Challenges</a>
+  <a href="/stats">Stats</a>
+  <a href="/players">Players</a>
+  <a href="/rules">Rules</a>
+  <a href="/shoutbox">Shoutbox</a>
+  {% if not session.logged_in %}
     <a href="{{ url_for ('login') }}">Login</a>
-    {% else %}
+  {% else %}
     <a href="{{ url_for('logout') }}">Logout</a>
-    {% endif %}
-    </div>
-
+  {% endif %}
+  </div>
   {% for message in get_flashed_messages() %}
-  <div class=flash>{{ message }}</div>
+    <div class=flash>{{ message }}</div>
   {% endfor %}
-  
   {% block body %}{% endblock %}
 
 <hr style="clear:all" />
