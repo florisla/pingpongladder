@@ -81,11 +81,12 @@ def calculate_ranking():
         ))
 
         game_index = len(g.game_details)
-        if game_index in app.config['QUITS']:
-            for quitter in app.config['QUITS'][game_index]:
-                # move the quitter to the bottom of the ranking
-                g.ranking.remove(quitter)
-                g.ranking.append(quitter)
+
+        drops = ((player,drop_at) for player,drop_at in g.drops.items() if drop_at == game_index)
+        for player,drop_at in drops:
+            # move the quitter to the bottom of the ranking
+            g.ranking.remove(player)
+            g.ranking.append(player)
 
         # log all current positions for all players
         for i,player in enumerate(g.ranking):
@@ -99,15 +100,37 @@ def get_challenges():
     challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
     return challenges
 
+def get_players():
+    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by initial_rank ASC;')
+    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
+    players = {p['name']:p for p in player_list}
+    return players
+
 @app.before_request
 def before_request():
     g.db = connect_db()
-    g.ranking = app.config['PLAYERS'][:]
-    g.original_ranking = app.config['PLAYERS'][:]
+    g.players = get_players()
+    g.ranking = [
+        player['name'] for player in sorted(
+            g.players.values(),
+            key=lambda p: p['initial_rank']
+        )
+    ]
+    g.original_ranking = g.ranking[:]
     g.challenges = get_challenges()
     g.challengers = set(ch['player1'] for ch in g.challenges)
     g.challengees = set(ch['player2'] for ch in g.challenges)
     g.challenged_players = sorted(g.challengers.union(g.challengees))
+    g.absences = {
+                 name:details['absence'] for name,details in g.players.items()
+                 if details['absence'] is not None
+                 and len(details['absence']) > 0
+    }
+    g.drops = {
+        name:details['rank_drop_at_game'] for name,details in g.players.items()
+        if details['rank_drop_at_game'] is not None
+    }
+    g.admins = [player['name'] for player in g.players.values() if player['admin'] == 1]
 
     try:
         calculate_ranking()
@@ -126,7 +149,7 @@ def show_home():
     return render_template('index.html',
         shouts=g.shouts[:20],
         challenged_players=g.challenged_players,
-        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
+        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/ranking')
@@ -141,7 +164,7 @@ def show_ranking():
 def show_ranking_json():
     return json.jsonify(
         positions=g.positions,
-        absences=app.config['ABSENCE'],
+        absences=g.absences,
         challengers=list(g.challengers),
         challengees=list(g.challengees),
     )
@@ -161,8 +184,8 @@ def show_challenges():
     return render_template(
         'show_challenges.html',
         challenges=g.challenges,
-        players=app.config['PLAYERS'],
-        absence=app.config['ABSENCE']
+        players=g.ranking,
+        absence=g.absences,
     )
 
 @app.route('/games/data')
@@ -184,13 +207,12 @@ def show_players():
     players = [
         dict(
             name=player,
-            full_name=app.config['PLAYER_NAMES'][player],
+            full_name=g.players[player]['full_name'],
             tags=tags[player]
         )
         for player
-        in sorted(app.config['PLAYERS'])
+        in sorted(g.ranking)
     ]
-
 
     return render_template('show_players.html',
         players=players,
@@ -199,7 +221,7 @@ def show_players():
 
 @app.route('/players/data')
 def get_players_data():
-    players = {name:dict(occupied=(name in g.challenged_players)) for name in app.config['PLAYERS']}
+    players = {name:dict(occupied=(name in g.challenged_players)) for name in g.ranking}
     return json.jsonify(players=players)
 
 @app.route('/rules')
@@ -216,7 +238,7 @@ def shoutbox():
     return render_template(
         'show_shoutbox.html',
         shouts = g.shouts,
-        admin_links=(session.get('logged_in') and session['username'] in app.config['ADMINS']),
+        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/player/tag/add', methods=['POST'])
@@ -371,7 +393,7 @@ def add_shout():
 def edit_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     if request.method == 'GET':
@@ -392,7 +414,7 @@ def edit_shout(shout_id):
 def remove_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     g.db.execute('delete from shouts where id=?;', [
@@ -412,7 +434,6 @@ def save_shout(player, shout):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     error = None
     if request.method == 'POST':
         hasher = hashlib.sha512()
@@ -421,7 +442,7 @@ def login():
         password_hash = hasher.digest()
         expected_password_hash = b'O\x9e\xba\xa5\x8cgH\x1bO\xaa\xe7\x93\x84\x85\xe1\xbd\x1d\x87\xfa\x1a\x08z$\xc8\xfd+T\xdeM\xf6\xa9\xb4\xc5`\xa4\x1d\x9d\xd6\xa5\xdc\x01\xcc\xc1J\xb4\x81\xc1\xab\x0b\x0fO\xccf\x16^\xb0\x0f\x91\xfc\xc1`\xbd\x02]'
 
-        if request.form['username'] not in app.config['PLAYERS']:
+        if request.form['username'] not in g.ranking:
             error = 'Invalid username'
         elif password_hash != expected_password_hash:
             error = 'Invalid password'
@@ -441,9 +462,9 @@ def logout():
 @app.route('/internal/manage')
 def manage():
     if not session.get('logged_in'):
-        abort(401)
+        return redirect(url_for('login'))
 
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
@@ -460,9 +481,9 @@ def manage():
 @app.route('/internal/manage', methods=['POST'])
 def manage_query():
     if not session.get('logged_in'):
-        abort(401)
+        return redirect(url_for('login'))
 
-    if not session['username'] in app.config['ADMINS']:
+    if not session['username'] in g.admins:
         abort(401)
 
     try:
