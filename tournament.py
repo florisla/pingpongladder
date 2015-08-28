@@ -155,7 +155,7 @@ def show_games():
     return render_template(
         'show_games.html',
         games=list(reversed(g.games)),
-        players=app.config['PLAYERS'],
+        players=g.ranking,
         swaps=g.swaps,
     )
 
@@ -396,8 +396,7 @@ def login():
             session['username'] = request.form['username']
             flash("You were logged in as '{}'".format(session['username']))
             return redirect(url_for('show_home'))
-    users = app.config['PLAYERS']
-    return render_template('login.html', error=error, users=users)
+    return render_template('login.html', error=error, users=g.ranking)
 
 @app.route('/logout')
 def logout():
