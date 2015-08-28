@@ -12,14 +12,14 @@ var scale_index_unity = 0;
 var translation = graph_offset_x;
 
 function draw() {
-    d3.json("http://florisla.pythonanywhere.com/ranking/data", function(ranks) {
+    d3.json("/ranking/data", function(ranks) {
         ranking = ranks.positions;
         absences = ranks.absences;
         challengers = ranks.challengers;
         challengees = ranks.challengees;
         draw_ranking();
 
-        d3.json("http://florisla.pythonanywhere.com/games/data", function(games) {
+        d3.json("/games/data", function(games) {
             game_details = games.game_details;
             draw_games();
 

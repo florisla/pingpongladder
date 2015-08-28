@@ -1,4 +1,4 @@
-d3.json("http://florisla.pythonanywhere.com/games/data", function(games) {
+d3.json("/games/data", function(games) {
     matches_per_date = game_count_per_day(games.game_details);
     challenges_won_per_date = lost_won_per_day(games.game_details);
     games_per_player = games_per_player(games.game_details);
