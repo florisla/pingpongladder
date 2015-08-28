@@ -101,7 +101,7 @@ def get_challenges():
     return challenges
 
 def get_players():
-    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players;')
+    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by initial_rank ASC;')
     player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
     players = {p['name']:p for p in player_list}
     return players
@@ -109,13 +109,18 @@ def get_players():
 @app.before_request
 def before_request():
     g.db = connect_db()
-    g.ranking = app.config['PLAYERS'][:]
-    g.original_ranking = app.config['PLAYERS'][:]
+    g.players = get_players()
+    g.ranking = [
+        player['name'] for player in sorted(
+            g.players.values(),
+            key=lambda p: p['initial_rank']
+        )
+    ]
+    g.original_ranking = g.ranking[:]
     g.challenges = get_challenges()
     g.challengers = set(ch['player1'] for ch in g.challenges)
     g.challengees = set(ch['player2'] for ch in g.challenges)
     g.challenged_players = sorted(g.challengers.union(g.challengees))
-    g.players = get_players()
     g.absences = {
                  name:details['absence'] for name,details in g.players.items()
                  if details['absence'] is not None
@@ -179,7 +184,7 @@ def show_challenges():
     return render_template(
         'show_challenges.html',
         challenges=g.challenges,
-        players=app.config['PLAYERS'],
+        players=g.ranking,
         absence=g.absences,
     )
 
@@ -206,9 +211,8 @@ def show_players():
             tags=tags[player]
         )
         for player
-        in sorted(app.config['PLAYERS'])
+        in sorted(g.ranking)
     ]
-
 
     return render_template('show_players.html',
         players=players,
@@ -217,7 +221,7 @@ def show_players():
 
 @app.route('/players/data')
 def get_players_data():
-    players = {name:dict(occupied=(name in g.challenged_players)) for name in app.config['PLAYERS']}
+    players = {name:dict(occupied=(name in g.challenged_players)) for name in g.ranking}
     return json.jsonify(players=players)
 
 @app.route('/rules')
@@ -438,7 +442,7 @@ def login():
         password_hash = hasher.digest()
         expected_password_hash = b'O\x9e\xba\xa5\x8cgH\x1bO\xaa\xe7\x93\x84\x85\xe1\xbd\x1d\x87\xfa\x1a\x08z$\xc8\xfd+T\xdeM\xf6\xa9\xb4\xc5`\xa4\x1d\x9d\xd6\xa5\xdc\x01\xcc\xc1J\xb4\x81\xc1\xab\x0b\x0fO\xccf\x16^\xb0\x0f\x91\xfc\xc1`\xbd\x02]'
 
-        if request.form['username'] not in app.config['PLAYERS']:
+        if request.form['username'] not in g.ranking:
             error = 'Invalid username'
         elif password_hash != expected_password_hash:
             error = 'Invalid password'
