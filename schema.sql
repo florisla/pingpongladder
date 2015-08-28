@@ -1,3 +1,4 @@
+
 drop table if exists games;
 create table games (
     id integer primary key autoincrement,
@@ -12,6 +13,7 @@ create table games (
     player2_score3 integer not null
 );
 
+
 drop table if exists challenges;
 create table challenges (
     id integer primary key autoincrement,
@@ -21,10 +23,19 @@ create table challenges (
     comment text not null
 );
 
+
 drop table if exists shouts;
 create table shouts (
     id integer primary key autoincrement,
     player text not null,
     shout text not null,
     date text not null
+);
+
+
+drop table if exists tags;
+create table tags (
+    id integer primary key autoincrement,
+    player text not null,
+    tag text not null
 );

@@ -3,23 +3,31 @@
 {% block body %}
 
   <h2>Players</h2>
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_tag') }}" method=post class=add-tag>
+        Tag <select name="player"><option name="none" selected> </option>
+            {% for player in ranking %}
+                <option name="{{ player }}">{{ player }}</option>
+            {% endfor %}
+        </select>
+        <input type=text size=25 name=tag>
+        <input type="submit" value="Save" /><br />
+    </form>
+  {% endif %}
+
   <ul class=players>
   {% for player in players %}
-    <li>{{ player['name'] }}
-  {% endfor %}
-  </ul>
-
-  <h2>Possible players</h2>
-  <ul class=players>
-  {% for player in possible_players %}
-    <li>{{ player['name'] }}
+    <li>
+      <span class="player-name">{{ player.name }}</span>
+      <span class="player-full-name">({{ player.full_name }})</span>
+      <span class="tag">{{ player.tags|join(', ') }}</span>
+    </li>
   {% endfor %}
   </ul>
 
   <h2>Stats</h2>
   <ul>
-      <li>{{ players|count }} confirmed players
-      <li>{{ possible_players|count }} possible extra participants
+      <li>{{ players|count }} participants
   </ul>
 
 {% endblock %}

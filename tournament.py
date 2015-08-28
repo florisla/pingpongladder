@@ -6,6 +6,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 
 import configuration
 import hashlib
+import random
 
 app = Flask(__name__)
 app.config.from_object(configuration)
@@ -177,13 +178,26 @@ def show_game_data_raw():
 
 @app.route('/players')
 def show_players():
-    players = [dict(name=player) for player in sorted(app.config['PLAYERS'])]
-    possible_players = [dict(name=player) for player in sorted(app.config['POSSIBLE_PLAYERS'])]
 
-    return render_template(
-        'show_players.html',
+    tags = {player:[] for player in g.ranking}
+    cur = g.db.execute('select player, tag from tags order by id desc')
+    for player,tag in cur.fetchall():
+        tags[player].append(tag)
+
+    players = [
+        dict(
+            name=player,
+            full_name=app.config['PLAYER_NAMES'][player],
+            tags=tags[player]
+        )
+        for player
+        in sorted(app.config['PLAYERS'])
+    ]
+
+
+    return render_template('show_players.html',
         players=players,
-        possible_players=possible_players,
+        ranking=g.ranking
     )
 
 @app.route('/players/data')
@@ -206,6 +220,29 @@ def shoutbox():
         'show_shoutbox.html',
         shouts = g.shouts,
     )
+
+@app.route('/player/tag/add', methods=['POST'])
+def add_tag():
+    if not session.get('logged_in'):
+        abort(401)
+    if request.form.get('player') is None or len(request.form['player']) == 0:
+        abort(401)
+    if request.form.get('tag') is None or len(request.form['tag']) == 0:
+        abort(401)
+
+    g.db.execute('insert into tags (player, tag) values (?,?);', [
+            request.form['player'],
+            request.form['tag'].lower(),
+    ])
+    g.db.commit()
+    flash("Tag was saved")
+
+    save_shout('Ladder', "Someone saw it fit to attribute <b>{}</b> with the tag <span class=\"tag\">{}</span>.".format(
+        request.form['player'],
+        request.form['tag'].lower()
+    ))
+
+    return redirect(url_for('show_players'))
 
 @app.route('/game/add', methods=['POST'])
 def add_game():
@@ -232,13 +269,43 @@ def add_game():
     g.db.commit()
     flash("Open challenge (if any) was removed")
 
+    # find nicknames in the tags table
+    cur = g.db.execute("select tag from tags where player =?", [request.form['player2']])
+    tags = [row[0] for row in cur.fetchall()]
+
+    nickname = ''
+    if any(tags):
+        nickname = " '<span class=\"tag\">{}</span>' ".format(
+            random.choice(tags)
+        )
+
     challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
     if challenger_lost:
         #save_shout('Ladder', '<b>{player1}</b> could not win from <b>{player2}</b>. <img src="/static/images/smos-unhappy.png" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- v2 and won --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- v4 and lost --> {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(
+            player1=request.form['player1'],
+            player2=request.form['player2'],
+            nick=nickname,
+            player1_score1=request.form['player1_score1'],
+            player1_score2=request.form['player1_score2'],
+            player1_score3=request.form['player1_score3'],
+            player2_score1=request.form['player2_score1'],
+            player2_score2=request.form['player2_score2'],
+            player2_score3=request.form['player2_score3'],
+        ))
     else:
         #save_shout('Ladder', '<b>{}</b> beat <b>{}</b>. <img src="/static/images/smos-happy.jpg" width="150" /><br />{player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
-        save_shout('Ladder', '<b>{player1}</b> played <!-- v2 and lost --> <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(**request.form))
+        save_shout('Ladder', '<b>{player1}</b> played <!-- v4 and won --> {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}-{player2_score3}'.format(
+            player1=request.form['player1'],
+            player2=request.form['player2'],
+            nick=nickname,
+            player1_score1=request.form['player1_score1'],
+            player1_score2=request.form['player1_score2'],
+            player1_score3=request.form['player1_score3'],
+            player2_score1=request.form['player2_score1'],
+            player2_score2=request.form['player2_score2'],
+            player2_score3=request.form['player2_score3'],
+        ))
 
     return redirect(url_for('show_games'))
 
