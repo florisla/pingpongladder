@@ -81,11 +81,12 @@ def calculate_ranking():
         ))
 
         game_index = len(g.game_details)
-        if game_index in app.config['QUITS']:
-            for quitter in app.config['QUITS'][game_index]:
-                # move the quitter to the bottom of the ranking
-                g.ranking.remove(quitter)
-                g.ranking.append(quitter)
+
+        drops = ((player,drop_at) for player,drop_at in g.drops.items() if drop_at == game_index)
+        for player,drop_at in drops:
+            # move the quitter to the bottom of the ranking
+            g.ranking.remove(player)
+            g.ranking.append(player)
 
         # log all current positions for all players
         for i,player in enumerate(g.ranking):
@@ -115,10 +116,14 @@ def before_request():
     g.challengees = set(ch['player2'] for ch in g.challenges)
     g.challenged_players = sorted(g.challengers.union(g.challengees))
     g.players = get_players()
-    g.absences={
+    g.absences = {
                  name:details['absence'] for name,details in g.players.items()
                  if details['absence'] is not None
                  and len(details['absence']) > 0
+    }
+    g.drops = {
+        name:details['rank_drop_at_game'] for name,details in g.players.items()
+        if details['rank_drop_at_game'] is not None
     }
 
     try:
