@@ -6,25 +6,27 @@ It is built on Python, Flask, sqlite and d3.js.
 
 Features
 ========
-* Game scores and challenges are logged in the database.
+* Game scores and challenges are logged in the database by the players themselves.
 * Nice visualisation of the ladder ranking over time -- scrollable and zoomable.
 * Statistics page shows some tournament history charts.
-* Shoutbox allows players to chat and discuss mong each other.
+* Shoutbox allows players to chat and discuss among each other.
 * Player can be attributed tags (nicknames) anonymously.
 * System publishes messages in the shoutbox: game scores, challenges, player tags.
 
 Limitations
 ===========
-* Players can't register themselves, they are entered manually in the configuration file.
+* Players can't register themselves, they are entered manually in the database.
 * All users share a single password -- Pingpong Ladder trusts its users.
-* There is no real management interface, only a page where you can enter manual SQL queries.
+* There is no distinction between a 'user' of the site and a tournament 'participant'
+* Apart from  the shouts which are editable, all management is done with manual SQL queries.
 
 Installation
 ============
-* Install Flask
-* Create the sqlite database using schema.sql
-* Rename example.configuration.py to configuration.py
-* Edit configuration.py and update all relevent settings
+* Install Flask.
+* Create the sqlite database using schema.sql .
+* Enter some 'players', of which one should receive admin=1 .
+* Rename example.configuration.py to configuration.py .
+* Edit configuration.py and update all settings.
 
 Warning
 =======
