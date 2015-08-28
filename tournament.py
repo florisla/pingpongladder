@@ -207,7 +207,7 @@ def show_players():
     players = [
         dict(
             name=player,
-            full_name=app.config['PLAYER_NAMES'][player],
+            full_name=g.players[player]['full_name'],
             tags=tags[player]
         )
         for player
