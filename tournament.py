@@ -99,6 +99,12 @@ def get_challenges():
     challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
     return challenges
 
+def get_players():
+    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game from players;')
+    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game'], row)) for row in cur.fetchall()]
+    players = {p['name']:p for p in player_list}
+    return players
+
 @app.before_request
 def before_request():
     g.db = connect_db()
@@ -108,6 +114,12 @@ def before_request():
     g.challengers = set(ch['player1'] for ch in g.challenges)
     g.challengees = set(ch['player2'] for ch in g.challenges)
     g.challenged_players = sorted(g.challengers.union(g.challengees))
+    g.players = get_players()
+    g.absences={
+                 name:details['absence'] for name,details in g.players.items()
+                 if details['absence'] is not None
+                 and len(details['absence']) > 0
+    }
 
     try:
         calculate_ranking()
@@ -141,7 +153,7 @@ def show_ranking():
 def show_ranking_json():
     return json.jsonify(
         positions=g.positions,
-        absences=app.config['ABSENCE'],
+        absences=g.absences,
         challengers=list(g.challengers),
         challengees=list(g.challengees),
     )
@@ -162,7 +174,7 @@ def show_challenges():
         'show_challenges.html',
         challenges=g.challenges,
         players=app.config['PLAYERS'],
-        absence=app.config['ABSENCE']
+        absence=g.absences,
     )
 
 @app.route('/games/data')

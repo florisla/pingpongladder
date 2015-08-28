@@ -10,10 +10,6 @@ PLAYERS = "A,B,C".split(',')
 
 POSSIBLE_PLAYERS = sorted("D,E".split(','))
 DENIED = sorted("F,G".split(','))
-ABSENCE = dict(
-    C='August 27',
-    B='August 17',
-)
 QUITS = {
     12: ['A']
 }
