@@ -35,8 +35,8 @@ def player2_won(player1_scores, player2_scores):
 
     return 1 < len([score for score in zip(player1_scores, player2_scores) if score[1] > score[0]])
 
-def get_shouts():
-    cur = g.db.execute('select player, shout, date, id from shouts order by date desc, id desc')
+def get_shouts(max_nr=20):
+    cur = g.db.execute('select player, shout, date, id from shouts order by date desc, id desc LIMIT ?', [max_nr])
     g.shouts = [dict(zip(['player', 'shout', 'date', 'id'], row)) for row in cur.fetchall()]
 
 def calculate_ranking():
@@ -147,7 +147,7 @@ def teardown_request(exception):
 @app.route('/')
 def show_home():
     return render_template('index.html',
-        shouts=g.shouts[:20],
+        shouts=g.shouts,
         challenged_players=g.challenged_players,
         admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
@@ -235,6 +235,8 @@ def show_stats():
 
 @app.route('/shoutbox')
 def shoutbox():
+
+    get_shouts(2000)
 
     return render_template(
         'show_shoutbox.html',
