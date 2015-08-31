@@ -477,42 +477,67 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_home'))
 
-@app.route('/internal/manage')
-def manage():
+@app.route('/internal/manage/<item_type>', methods=['GET', 'POST'])
+def manage(item_type):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     if not session['username'] in g.admins:
         abort(401)
 
-    cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
-    games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
+    item_details = dict(
+        games = dict(
+            title = 'Games',
+            query = 'select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date desc',
+            columns = ['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'],
+        ),
+        challenges = dict(
+            title = 'Challenges',
+            query = 'select id, date, player1, player2, comment from challenges order by date desc',
+            columns = ['id', 'date', 'player1', 'player2', 'comment'],
 
-    cur = g.db.execute('select id, player, shout, date from shouts order by date asc')
-    shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
+        ),
+        shouts = dict(
+            title = 'Shouts',
+            query = 'select id, player, shout, date from shouts order by date desc',
+            columns = ['id', 'player', 'shout', 'date'],
 
-    cur = g.db.execute('select id, date, player1, player2, comment from challenges order by date asc')
-    challenges = [dict(zip(['id', 'date', 'player1', 'player2', 'comment'], row)) for row in cur.fetchall() if row[1] != '']
+        ),
+        players = dict(
+            title = 'Players',
+            query = 'select id, name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by id desc',
+            columns = ['id', 'name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'],
 
-    return render_template('manage.html', games=games, shouts=shouts, challenges=challenges)
+        ),
+        tags = dict(
+            title = 'Tags',
+            query = 'select id, player, tag from tags order by id desc',
+            columns = ['id', 'player', 'tag'],
+        ),
+    )
 
-@app.route('/internal/manage', methods=['POST'])
-def manage_query():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    if not session['username'] in g.admins:
+    if item_type not in item_details:
         abort(401)
 
-    try:
-        g.db.execute(request.form['query'])
-        g.db.commit()
-    except Exception as e:
-        flash(e)
-        return redirect(url_for('manage'))
+    if request.method == 'POST':
+        try:
+            cur = g.db.execute(request.form['query'])
+            items = [dict(zip(range(100), r)) for r in cur.fetchall()]
+            g.db.commit()
+            flash('Query is executed')
+        except Exception as e:
+            flash(e)
 
-    flash('Query is executed')
-    return redirect(url_for('manage'))
+    elif request.method == 'GET':
+        cur = g.db.execute(item_details[item_type]['query'])
+        items = [dict(zip(item_details[item_type]['columns'], row)) for row in cur.fetchall()]
+
+    return render_template(
+        'manage.html',
+        title=item_details[item_type]['title'],
+        items=items,
+        item_type = item_type,
+    )
 
 
 if __name__ == '__main__':
