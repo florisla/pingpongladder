@@ -12,6 +12,7 @@ h2              { font-size: 1.2em; }
 .add-entry dl   { font-weight: bold; }
 .metanav        { text-align: right; font-size: 0.8em; padding: 0.3em;
                   margin-bottom: 1em; background: #fafafa; }
+.metanav a      { padding: 0 0.5em 0 0.5em; }
 .quote          { text-align: left; font-size: 0.8em; padding: 0.3em 0 0 4em;
                   margin-bottom: 0; background: #fafafa; font-style: italic;
                   color:#999; }
