@@ -11,14 +11,21 @@
   </form>
 
   <h2>{{ title }}</h2>
+  <table>
+  {% set first_row = True %}
   {% for item in items %}
-    <li>
+    <tr>
     {% for key,value in item.items() %}
-      {{ key }} = {{ value }} <br />
+      {% if first_row %}
+      <th>{{ key }}</th>
+      {% else %}
+      <td>{{ value }}</td>
+      {% endif %}
     {% endfor %}
-    </li>
+    {% set first_row = False %}
+    </tr>
   {% endfor %}
-  </ul>
+  </table>
 
   <br />
 
