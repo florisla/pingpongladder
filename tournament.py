@@ -216,7 +216,8 @@ def show_players():
 
     return render_template('show_players.html',
         players=players,
-        ranking=g.ranking
+        ranking=g.ranking,
+        absence='' if not session['logged_in'] else g.players[session['username']]['absence'],
     )
 
 @app.route('/players/data')
@@ -240,6 +241,21 @@ def shoutbox():
         shouts = g.shouts,
         admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
+
+@app.route('/player/absence/save', methods=['POST'])
+def save_absence():
+    if not session.get('logged_in'):
+        abort(401)
+    if request.form.get('absence') is None:
+        abort(401)
+
+    g.db.execute('update players set absence=? where name=?;', [
+        request.form['absence'],
+        session['username'],
+    ])
+    g.db.commit()
+    flash("Absence was saved")
+    return redirect(url_for('show_players'))
 
 @app.route('/player/tag/add', methods=['POST'])
 def add_tag():

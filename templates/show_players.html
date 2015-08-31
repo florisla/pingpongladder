@@ -4,6 +4,12 @@
 
   <h2>Players</h2>
   {% if session.logged_in %}
+    I am absent until (yyyy-mm-dd):<br />
+    <form action="{{ url_for('save_absence') }}" method="post" class="absence">
+    <input type=text size=25 name=absence value="{{ absence }} "/>
+    <input type="submit" value="Save" /><br />
+    </form>
+    <br />
     <form action="{{ url_for('add_tag') }}" method=post class=add-tag>
         Tag <select name="player"><option name="none" selected> </option>
             {% for player in ranking %}
