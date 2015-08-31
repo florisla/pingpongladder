@@ -2,45 +2,23 @@
 {% block title %}Manage{% endblock %}
 {% block body %}
 
-  <h2>Games</h2>
-  {% for game in games %}
-    <li>
-    {% for key,value in game.items() %}
-      {{ key }} = {{ value }} <br />
-    {% endfor %}
-    </li>
-  {% endfor %}
-  </ul>
-
-  <h2>Challenges</h2>
-  {% for challenge in challenges %}
-    <li>
-    {% for key,value in challenge.items() %}
-      {{ key }} = {{ value }} <br />
-    {% endfor %}
-    </li>
-  {% endfor %}
-  </ul>
-  <br />
-
-  <h2>Shouts</h2>
-  {% for shout in shouts %}
-    <li>
-    {% for key,value in shout.items() %}
-      {{ key }} = {{ value }} <br />
-    {% endfor %}
-    </li>
-  {% endfor %}
-  </ul>
-  <br />
-
-
-
-  <h2>Update DB</h2>
+  <h2>Query</h2>
   <form action="{{ url_for('manage_query') }}" method=post>
     <textarea rows="15" cols="50" name="query"></textarea>
     <br />
     <input type=submit value='Execute'>
   </form>
+
+  <h2>{{ title }}</h2>
+  {% for item in items %}
+    <li>
+    {% for key,value in item.items() %}
+      {{ key }} = {{ value }} <br />
+    {% endfor %}
+    </li>
+  {% endfor %}
+  </ul>
+
+  <br />
 
 {% endblock %}

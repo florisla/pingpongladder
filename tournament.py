@@ -477,24 +477,71 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_home'))
 
-@app.route('/internal/manage')
-def manage():
+@app.route('/internal/manage/games')
+def manage_games():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     if not session['username'] in g.admins:
         abort(401)
 
-    cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
+    cur = g.db.execute('select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date desc')
     games = [dict(zip(['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
 
-    cur = g.db.execute('select id, player, shout, date from shouts order by date asc')
-    shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
+    return render_template('manage.html', title='Games', items=games)
 
-    cur = g.db.execute('select id, date, player1, player2, comment from challenges order by date asc')
+@app.route('/internal/manage/challenges')
+def manage_challenges():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if not session['username'] in g.admins:
+        abort(401)
+
+    cur = g.db.execute('select id, date, player1, player2, comment from challenges order by date desc')
     challenges = [dict(zip(['id', 'date', 'player1', 'player2', 'comment'], row)) for row in cur.fetchall() if row[1] != '']
 
-    return render_template('manage.html', games=games, shouts=shouts, challenges=challenges)
+    return render_template('manage.html', title='Challenges', items=challenges)
+
+@app.route('/internal/manage/shouts')
+def manage_shouts():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if not session['username'] in g.admins:
+        abort(401)
+
+    cur = g.db.execute('select id, player, shout, date from shouts order by date desc')
+    shouts = [dict(zip(['id', 'player', 'shout', 'date'], row)) for row in cur.fetchall()]
+
+    return render_template('manage.html', title='Shouts', items=shouts)
+@app.route('/internal/manage/shouts')
+
+@app.route('/internal/manage/players')
+def manage_players():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if not session['username'] in g.admins:
+        abort(401)
+
+    cur = g.db.execute('select id, name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by id desc')
+    players = [dict(zip(['id', 'name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
+
+    return render_template('manage.html', title='Players', items=players)
+
+@app.route('/internal/manage/tags')
+def manage_tags():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if not session['username'] in g.admins:
+        abort(401)
+
+    cur = g.db.execute('select id, player, tag from tags order by id desc')
+    tags = [dict(zip(['id', 'player', 'tag'], row)) for row in cur.fetchall()]
+
+    return render_template('manage.html', title='Tags', items=tags)
 
 @app.route('/internal/manage', methods=['POST'])
 def manage_query():
