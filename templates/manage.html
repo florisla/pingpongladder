@@ -3,7 +3,8 @@
 {% block body %}
 
   <h2>Query</h2>
-  <form action="{{ url_for('manage_query') }}" method=post>
+  <form action="{{ url_for('manage', item_type=item_type) }}" method=post>
+    <input type="hidden" name="item_type" value="{{ item_type }}" />
     <textarea rows="15" cols="50" name="query"></textarea>
     <br />
     <input type=submit value='Execute'>

@@ -477,8 +477,8 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_home'))
 
-@app.route('/internal/manage/<item_type>')
-def manage_games(item_type):
+@app.route('/internal/manage/<item_type>', methods=['GET', 'POST'])
+def manage(item_type):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
@@ -519,27 +519,25 @@ def manage_games(item_type):
     if item_type not in item_details:
         abort(401)
 
-    cur = g.db.execute(item_details[item_type]['query'])
-    items = [dict(zip(item_details[item_type]['columns'], row)) for row in cur.fetchall()]
-    return render_template('manage.html', title=item_details[item_type]['title'], items=items)
+    if request.method == 'POST':
+        try:
+            cur = g.db.execute(request.form['query'])
+            items = [dict(zip(range(100), r)) for r in cur.fetchall()]
+            g.db.commit()
+            flash('Query is executed')
+        except Exception as e:
+            flash(e)
 
-@app.route('/internal/manage', methods=['POST'])
-def manage_query():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    elif request.method == 'GET':
+        cur = g.db.execute(item_details[item_type]['query'])
+        items = [dict(zip(item_details[item_type]['columns'], row)) for row in cur.fetchall()]
 
-    if not session['username'] in g.admins:
-        abort(401)
-
-    try:
-        g.db.execute(request.form['query'])
-        g.db.commit()
-    except Exception as e:
-        flash(e)
-        return redirect(url_for('manage'))
-
-    flash('Query is executed')
-    return redirect(url_for('manage'))
+    return render_template(
+        'manage.html',
+        title=item_details[item_type]['title'],
+        items=items,
+        item_type = item_type,
+    )
 
 
 if __name__ == '__main__':
