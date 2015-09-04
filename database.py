@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Date, LargeBinary, Sequence
-from sqlalchemy import ForeignKey
+from sqlalchemy import Column, ForeignKey, Sequence
+from sqlalchemy import Boolean, Integer, String, Date, LargeBinary
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import relationship, backref
 
 engine = create_engine('sqlite:///tournament.db', echo=True)
 Session = sessionmaker(bind=engine)
@@ -17,11 +17,11 @@ class Player(Base):
     id = Column(Integer, Sequence('player_id_seq'), primary_key=True)
     name = Column(String(15), nullable=False)
     full_name = Column(String(25), nullable=False)
-    admin = Column(Integer, default=0, nullable=False)
-    initial_rank = Column(Integer)
-    rank_drop_at_game = Column(Integer)
-    absence = Column(Date)
-    password_salt = Column(String(20))
+    admin = Column(Boolean, default=False, nullable=False)
+    initial_rank = Column(Integer, nullable=False)
+    rank_drop_at_game = Column(Integer, nullable=True)
+    absence = Column(Date, nullable=True)
+    password_salt = Column(LargeBinary(20))
     password_hash = Column(LargeBinary(128))
 
     def __repr__(self):
@@ -32,9 +32,10 @@ class Player(Base):
 class Tag(Base):
 
     __tablename__ = 'tags'
-    id = Column(Integer, Sequence('player_id_seq'), primary_key=True)
+    id = Column(Integer, Sequence('tag_id_seq'), primary_key=True)
     tag = Column(String(15), nullable=False)
-    player_id = Column(Integer, ForeignKey('players.id'))
+    player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+
     player = relationship("Player", backref=backref('tags', order_by=id))
 
     def __repr__(self):
@@ -44,7 +45,58 @@ class Tag(Base):
         )
 
 
-Base.metadata.create_all(engine)
+class Game(Base):
+
+    __tablename__ = 'games'
+    id = Column(Integer, Sequence('game_id_seq'), primary_key=True)
+    date = Column(Date, nullable=False)
+    challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    score_challenger_1 = Column(Integer, nullable=False)
+    score_defender_1 = Column(Integer, nullable=False)
+    score_challenger_2 = Column(Integer, nullable=False)
+    score_defender_2 = Column(Integer, nullable=False)
+    score_challenger_3 = Column(Integer, nullable=True)
+    score_defender_3 = Column(Integer, nullable=True)
+    game_comment = Column(String(60), nullable=True)
+
+    challenger = relationship("Player", foreign_keys=[challenger_id], backref=backref('challenge_games', order_by=id))
+    defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defense_games', order_by=id))
+
+    def __repr__(self):
+        return "Game(challenger='{}', defender='{}', date='{}'".format(
+            self.challenger.name,
+            self.defender.name,
+            self.date,
+        )
+
+
+class Shout(Base):
+
+    __tablename__ = 'shouts'
+    id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
+    shout = Column(String(128), nullable=False)
+    player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    date = Column(Date, nullable=False)
+
+    player = relationship("Player", backref=backref('shouts', order_by=id))
+
+
+class Challenge(Base):
+
+    __tablename__ = 'challenges'
+    id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
+    challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    date = Column(Date, nullable=False)
+    active = Column(Boolean, default=True, nullable=False)
+
+    challenger = relationship("Player", foreign_keys=[challenger_id], backref=backref('offensive_challenges', order_by=id))
+    defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defensive_challenges', order_by=id))
+
+
+if True:
+    Base.metadata.create_all(engine)
 
 if False:
     # add a single player
