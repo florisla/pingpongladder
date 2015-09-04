@@ -95,63 +95,69 @@ class Challenge(Base):
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defensive_challenges', order_by=id))
 
 
-if True:
+def create():
     Base.metadata.create_all(engine)
 
-if False:
-    # add a single player
-    player = Player(name='Floris', full_name='Floris Lambrechts')
-    player.tags = [
-        Tag(tag='ok'),
-        Tag(tag='player'),
-        Tag(tag='pingpong'),
-    ]
-    print(player.name, player.full_name, player.id)
-    session.add(player)
-    session.commit()
-
-if True:
-    # add a single player with integrated tags
-    player = Player(name='Lou', full_name='Lou Vervecken', tags=[
-        Tag(tag='voorstopper'),
-    ])
-    session.add(player)
-    session.commit()
-
-if False:
-    # add multiple players
+def add_players():
     session.add_all([
-        Player(name='Floris', full_name='Floris Lambrechts', initial_rank=3),
-        Player(name='Lou', full_name='Lou Vervecken', initial_rank=5),
-        Player(name='Roel', full_name='Roel Aerts', initial_rank=9),
+        Player(name='Lou', full_name='Lou Vervecken', initial_rank=13, tags=[
+            Tag(tag='voorstopper'),
+        ]),
+        Player(name='Floris', full_name='Floris Lambrechts', initial_rank=5, tags=[
+            Tag(tag='midvoor'),
+        ]),
     ])
-    print(session.new)
     session.commit()
 
-if True:
-    # query with filter_by
+def add_games():
+    import datetime
+    players = ['Lou', 'Floris']
+
+    session.add(
+        Game(
+            challenger=session.query(Player).filter(Player.name==players[0]).one(),
+            defender=session.query(Player).filter(Player.name==players[1]).one(),
+            score_challenger_1 = 10,
+            score_defender_1 = 12,
+            score_challenger_2 = 14,
+            score_defender_2 = 16,
+            date=datetime.datetime.now(), # FIXME timezone
+            game_comment='test',
+        )
+    )
+    session.commit()
+
+def query_filter_by():
     our_user = session.query(Player).filter_by(name='Floris').first()
     print(our_user, our_user.id)
 
-if True:
-    # query on class
+def query_on_class() :
     for player in session.query(Player).order_by(Player.id):
          print(player.name, player.full_name, player.id)
 
-if True:
-    # query on entities
+def query_on_entities():
     for name,id in session.query(Player.name, Player.id):
         print(name, id)
 
-if True:
-    # multiple filter()
+def multiple_filter():
     for player in session.query(Player) \
             .filter(Player.name=='Floris') \
             .filter(Player.full_name=='Floris Lambrechts'):
         print(player)
 
-if True:
-    # query with IN
+def filter_with_in():
     for player in session.query(Player) \
             .filter(Player.name.in_(['Lou', 'Floris'])):
         print(player)
+
+if __name__ == '__main__':
+    # create()
+    # add_players()
+    add_games()
+    # query_filter_by()
+    # query_on_class()
+    # query_on_entities()
+    # multiple_filter()
+    # query_with_in
+    pass
+
