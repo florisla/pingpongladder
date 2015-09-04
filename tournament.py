@@ -455,14 +455,14 @@ def login():
     error = None
     if request.method == 'POST':
         hasher = hashlib.sha512()
-        salted_password = "4DnhISbPs8oXbAjT" + request.form['password']
-        hasher.update(salted_password.encode('utf-8'))
+        salted_password = app.config['PASSWORD_SALT'] + request.form['password'].encode('utf-8')
+        hasher.update(salted_password)
         password_hash = hasher.digest()
         expected_password_hash = b'O\x9e\xba\xa5\x8cgH\x1bO\xaa\xe7\x93\x84\x85\xe1\xbd\x1d\x87\xfa\x1a\x08z$\xc8\xfd+T\xdeM\xf6\xa9\xb4\xc5`\xa4\x1d\x9d\xd6\xa5\xdc\x01\xcc\xc1J\xb4\x81\xc1\xab\x0b\x0fO\xccf\x16^\xb0\x0f\x91\xfc\xc1`\xbd\x02]'
 
         if request.form['username'] not in g.ranking:
             error = 'Invalid username'
-        elif password_hash != expected_password_hash:
+        elif password_hash != app.config['PASSWORD_HASH']:
             error = 'Invalid password'
         else:
             session['logged_in'] = True
