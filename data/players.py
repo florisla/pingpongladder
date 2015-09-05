@@ -1,5 +1,5 @@
 
-from data.database import Player
+from data.datamodel import Player
 from data.dbsession import session
 
 def get_players():

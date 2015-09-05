@@ -1,5 +1,5 @@
 
-from database import Challenge, Player
+from data.datamodel import Challenge, Player
 from data.dbsession import session
 from sqlalchemy.orm.exc import NoResultFound
 

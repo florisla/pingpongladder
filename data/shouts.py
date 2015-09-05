@@ -1,5 +1,5 @@
 
-from data.database import Player, Shout
+from data.datamodel import Player, Shout
 from data.dbsession import session
 
 def get_shouts(max_shouts=20):

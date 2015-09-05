@@ -1,5 +1,5 @@
 
-from data.database import Game, Player
+from data.datamodel import Game, Player
 from data.dbsession import session
 
 def save_game(challenger, defender, scores, comment):

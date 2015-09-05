@@ -1,5 +1,5 @@
 
-from data.database import Player, Tag
+from data.datamodel import Player, Tag
 from data.dbsession import session
 
 def add_tag(player, tag):
