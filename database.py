@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy import Column, ForeignKey, Sequence
 from sqlalchemy import Boolean, Integer, String, Date, LargeBinary
+from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -49,7 +50,7 @@ class Game(Base):
 
     __tablename__ = 'games'
     id = Column(Integer, Sequence('game_id_seq'), primary_key=True)
-    date = Column(Date, nullable=False)
+    date = Column(Date, nullable=False, default=func.now())
     challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     score_challenger_1 = Column(Integer, nullable=False)
@@ -76,10 +77,17 @@ class Shout(Base):
     __tablename__ = 'shouts'
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     shout = Column(String(128), nullable=False)
+    session.commit()
     player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
-    date = Column(Date, nullable=False)
+    date = Column(Date, nullable=False, default=func.now())
 
     player = relationship("Player", backref=backref('shouts', order_by=id))
+
+    def __repr__(self):
+        return "Shout(player_id={}, shout='{}')".format(
+            self.player_id,
+            self.shout
+        )
 
 
 class Challenge(Base):
@@ -88,11 +96,17 @@ class Challenge(Base):
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
-    date = Column(Date, nullable=False)
+    date = Column(Date, nullable=False, default=func.now())
     active = Column(Boolean, default=True, nullable=False)
 
     challenger = relationship("Player", foreign_keys=[challenger_id], backref=backref('offensive_challenges', order_by=id))
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defensive_challenges', order_by=id))
+
+    def __repr__(self):
+        return "Challenge(challenger_id={}, defender_id={})".format(
+            self.challenger_id,
+            self.defender_id,
+        )
 
 
 def create():
@@ -121,7 +135,6 @@ def add_games():
             score_defender_1 = 12,
             score_challenger_2 = 14,
             score_defender_2 = 16,
-            date=datetime.datetime.now(), # FIXME timezone
             game_comment='test',
         )
     )
@@ -149,6 +162,23 @@ def filter_with_in():
     for player in session.query(Player) \
             .filter(Player.name.in_(['Lou', 'Floris'])):
         print(player)
+
+# select all games, order by date
+# insert game
+# + disable challenge for that game
+
+# add new challenge
+# get all active challenges, order by date
+# disable challenges from player
+
+# get all players (order by initial rank)?
+# set absence for player
+
+# get tags belonging to players
+# add tag to player
+# get tag for player
+
+# execute admin query
 
 if __name__ == '__main__':
     # create()
