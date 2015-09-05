@@ -103,11 +103,11 @@ class Challenge(Base):
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defensive_challenges', order_by=id))
 
     def __repr__(self):
-        return "Challenge(challenger_id={}, defender_id={})".format(
+        return "Challenge(challenger_id={}, defender_id={}, active={})".format(
             self.challenger_id,
             self.defender_id,
+            self.active
         )
-
 
 def create():
     Base.metadata.create_all(engine)
@@ -163,22 +163,9 @@ def filter_with_in():
             .filter(Player.name.in_(['Lou', 'Floris'])):
         print(player)
 
-# select all games, order by date
-# insert game
-# + disable challenge for that game
-
-# add new challenge
-# get all active challenges, order by date
-# disable challenges from player
-
-# get all players (order by initial rank)?
-# set absence for player
-
-# get tags belonging to players
-# add tag to player
-# get tag for player
-
 # execute admin query
+
+# FIXME globalize session
 
 if __name__ == '__main__':
     # create()
