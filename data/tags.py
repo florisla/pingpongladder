@@ -1,6 +1,6 @@
 
 from data.database import Player, Tag
-from data.database import session
+from data.dbsession import session
 
 def add_tag(player, tag):
     session.add(Tag(

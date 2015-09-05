@@ -1,6 +1,6 @@
 
 from database import Challenge, Player
-from database import session
+from data.dbsession import session
 from sqlalchemy.orm.exc import NoResultFound
 
 def add_challenge(challenger, defender):

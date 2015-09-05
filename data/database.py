@@ -1,16 +1,12 @@
-from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
 from sqlalchemy import Column, ForeignKey, Sequence
 from sqlalchemy import Boolean, Integer, String, Date, LargeBinary
-from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import func
 
-engine = create_engine('sqlite:///tournament.db', echo=True)
-Session = sessionmaker(bind=engine)
-session = Session()
-Base = declarative_base()
-
+# To create a new tables:
+# Base.metadata.create_all(engine)
 
 class Player(Base):
 
@@ -111,73 +107,4 @@ class Challenge(Base):
             self.defender_id,
             self.active
         )
-
-def create():
-    Base.metadata.create_all(engine)
-
-def add_players():
-    session.add_all([
-        Player(name='Lou', full_name='Lou Vervecken', initial_rank=13, tags=[
-            Tag(tag='voorstopper'),
-        ]),
-        Player(name='Floris', full_name='Floris Lambrechts', initial_rank=5, tags=[
-            Tag(tag='midvoor'),
-        ]),
-    ])
-    session.commit()
-
-def add_games():
-    import datetime
-    players = ['Lou', 'Floris']
-
-    session.add(
-        Game(
-            challenger=session.query(Player).filter(Player.name==players[0]).one(),
-            defender=session.query(Player).filter(Player.name==players[1]).one(),
-            score_challenger_1 = 10,
-            score_defender_1 = 12,
-            score_challenger_2 = 14,
-            score_defender_2 = 16,
-            game_comment='test',
-        )
-    )
-    session.commit()
-
-def query_filter_by():
-    our_user = session.query(Player).filter_by(name='Floris').first()
-    print(our_user, our_user.id)
-
-def query_on_class() :
-    for player in session.query(Player).order_by(Player.id):
-         print(player.name, player.full_name, player.id)
-
-def query_on_entities():
-    for name,id in session.query(Player.name, Player.id):
-        print(name, id)
-
-def multiple_filter():
-    for player in session.query(Player) \
-            .filter(Player.name=='Floris') \
-            .filter(Player.full_name=='Floris Lambrechts'):
-        print(player)
-
-def filter_with_in():
-    for player in session.query(Player) \
-            .filter(Player.name.in_(['Lou', 'Floris'])):
-        print(player)
-
-# execute admin query
-
-# FIXME globalize session
-
-if __name__ == '__main__':
-    create()
-    add_players()
-    add_games()
-    # query_filter_by()
-    # query_on_class()
-    # query_on_entities()
-    # multiple_filter()
-    # query_with_in
-    pass
 

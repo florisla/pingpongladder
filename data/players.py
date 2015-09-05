@@ -1,6 +1,6 @@
 
 from data.database import Player
-from data.database import session
+from data.dbsession import session
 
 def get_players():
     return session.query(Player).all()

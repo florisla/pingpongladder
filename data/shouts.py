@@ -1,6 +1,6 @@
 
 from data.database import Player, Shout
-from data.database import session
+from data.dbsession import session
 
 def get_shouts(max_shouts=20):
     return session.query(Shout).order_by(Shout.date).order_by(Shout.id).limit(max_shouts).all()
