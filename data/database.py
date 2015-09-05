@@ -30,6 +30,7 @@ class Player(Base):
             self.name, self.full_name
         )
 
+
 class Tag(Base):
 
     __tablename__ = 'tags'
@@ -98,9 +99,11 @@ class Challenge(Base):
     defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     date = Column(Date, nullable=False, default=func.now())
     active = Column(Boolean, default=True, nullable=False)
+    game_id = Column(Integer, ForeignKey('games.id'), nullable=True)
 
     challenger = relationship("Player", foreign_keys=[challenger_id], backref=backref('offensive_challenges', order_by=id))
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defensive_challenges', order_by=id))
+    game = relationship("Game", backref=backref('challenge', order_by=id))
 
     def __repr__(self):
         return "Challenge(challenger_id={}, defender_id={}, active={})".format(
@@ -168,8 +171,8 @@ def filter_with_in():
 # FIXME globalize session
 
 if __name__ == '__main__':
-    # create()
-    # add_players()
+    create()
+    add_players()
     add_games()
     # query_filter_by()
     # query_on_class()

@@ -23,6 +23,6 @@ def get_games():
 
 
 if __name__ == '__main__':
-    #save_game('Lou', 'Floris', ((11,7), (11,9)), 'good game')
+    save_game('Floris', 'Lou', ((11,7), (11,9)), 'good game')
     #print(get_games())
     pass

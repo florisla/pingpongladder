@@ -23,11 +23,23 @@ def deactivate_challenges(challenger_name):
     challenge.active = False
     session.commit()
 
-# disable challenge for a game
+def link_challenge_to_game(game):
+    try:
+        challenge = session.query(Challenge).filter(Challenge.challenger_id == game.challenger_id).filter(Challenge.defender_id == game.defender_id).filter(Challenge.active == True).one()
+    except NoResultFound:
+        return
+    challenge.game_id = game.id
+    challenge.active = False
+    session.commit()
+
 
 if __name__ == '__main__':
     #add_challenge('Floris', 'Lou')
+    #from data.database import Game
+    #game = session.query(Game).filter(Game.id == 1).one()
+    #link_challenge_to_game(game)
     #add_challenge('Lou', 'Floris')
-    deactivate_challenges('Floris')
+    #deactivate_challenges('Floris')
     #print(get_challenges())
+    pass
 
