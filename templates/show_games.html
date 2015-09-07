@@ -42,7 +42,11 @@
   <h2>Games</h2>
   <ul class=games>
   {% for game in games %}
-    <li> {{ game['player1'] }} - {{ game['player2'] }}: <span class='score'>{{ game['player1_score1'] }}-{{ game['player2_score1'] }}</span>, <span class='score'>{{ game['player1_score2'] }}-{{ game['player2_score2'] }}</span>, <span class='score'>{{ game['player1_score3'] }}-{{ game['player2_score3'] }}</span> ({{ game['date']  }})
+    <li> {{ game.challenger.name }} - {{ game.defender.name }}: <span class='score'>{{ game.score_challenger_1 }}-{{ game.score_defender_1 }}</span>, <span class='score'>{{ game.score_challenger_2 }}-{{ game.score_defender_2 }}</span>
+    {% if game.score_challenger_3 or game.score_defender_3 %}
+      , <span class='score'>{{ game.score_challenger_3 }}-{{ game.score_defender_3 }}</span>
+    {% endif %}
+    ({{ game['date']  }})
   {% endfor %}
   </ul>
 

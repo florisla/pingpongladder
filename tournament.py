@@ -12,6 +12,10 @@ from data.database import db
 import data.admin
 
 from data.players import get_players, player_is_admin
+from data.shouts import get_shouts, save_shout
+from data.challenges import get_challenges
+from data.tags import add_tag
+from data.games import get_games
 
 
 def connect_db():
@@ -35,54 +39,39 @@ def player2_won(player1_scores, player2_scores):
     if isinstance(player1_scores[0], str):
         player1_scores = [int(score) if len(score) > 0 else 0 for score in player1_scores]
         player2_scores = [int(score) if len(score) > 0 else 0 for score in player2_scores]
+    if player1_scores[2] is None:
+        player1_scores[2] = 0
+        player2_scores[2] = 0
 
     return 1 < len([score for score in zip(player1_scores, player2_scores) if score[1] > score[0]])
-
-def get_shouts(max_nr=20):
-    cur = g.db.execute('select player, shout, date, id from shouts order by date desc, id desc LIMIT ?', [max_nr])
-    g.shouts = [dict(zip(['player', 'shout', 'date', 'id'], row)) for row in cur.fetchall()]
 
 def calculate_ranking():
     if hasattr(g, 'swaps'):
         return
     g.swaps = []
     # load all games
-    cur = g.db.execute('select date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
-    g.games = [dict(zip(['date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
+    g.games = get_games()
     g.positions = {player: [-i - 1] for i,player in enumerate(g.ranking)}
     g.game_details = []
 
     is_participating = set()
 
     g.ranking = g.original_ranking[:]
-    cur = g.db.execute('select date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
+
     # for each game, determine the winner and swap ranking with the loser if necessary
+    for game in g.games:
+        is_participating.add(game.challenger.name)
+        is_participating.add(game.defender.name)
 
-    for match_date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 in cur.fetchall():
-        if player1 in [None, ''] or player2 in [None, '']:
-            # invalid row in the database; ignore
-            continue
-
-        is_participating.add(player1)
-        is_participating.add(player2)
-
-        challenger_lost = player2_won([player1_score1, player1_score2, player1_score3], [player2_score1, player2_score2, player2_score3]);
+        challenger_lost = player2_won([game.score_challenger_1, game.score_challenger_2, game.score_challenger_3], [game.score_defender_1, game.score_defender_2, game.score_defender_3]);
         if challenger_lost:
-            if swap_ranking(player2, player1):
-                g.swaps.append((player2, player1))
+            if swap_ranking(game.defender.name, game.challenger.name):
+                g.swaps.append((g.defender.name, game.challenger.name))
         else:
-            if swap_ranking(player1, player2):
-                g.swaps.append((player1, player2))
+            if swap_ranking(game.challenger.name, game.defender.name):
+                g.swaps.append((game.challenger.name, game.defender.name))
 
-        g.game_details.append(dict(
-            challenger=dict(name=player1, rank=abs(g.positions[player1][-1])),
-            challengee=dict(name=player2, rank=abs(g.positions[player2][-1])),
-            scores=[(player1_score1, player2_score1), (player1_score2, player2_score2), (player1_score3, player2_score3)],
-            winner=player2 if challenger_lost else player1,
-            index=len(g.positions[player1]),
-            date=match_date,
-        ))
-
+        g.game_details.append(game)
         game_index = len(g.game_details)
 
         drops = ((player,drop_at) for player,drop_at in g.drops.items() if drop_at == game_index)
@@ -98,14 +87,9 @@ def calculate_ranking():
             else:
                 g.positions[player].append(-i - 1)
 
-def get_challenges():
-    cur = g.db.execute('select  player1, player2, date, comment from challenges order by date asc')
-    challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
-    return challenges
-
 @app.before_request
 def before_request():
-    # FIXME: do the sorting already in get_players!
+    # FIXME: do the sorting according to rank already in get_players!
     g.players = get_players()
     g.ranking = [
         player.name for player in sorted(
@@ -114,25 +98,22 @@ def before_request():
         )
     ]
     g.original_ranking = g.ranking[:]
-    return
+    g.shouts = get_shouts()
     g.challenges = get_challenges()
-    g.challengers = set(ch['player1'] for ch in g.challenges)
-    g.challengees = set(ch['player2'] for ch in g.challenges)
-    g.challenged_players = sorted(g.challengers.union(g.challengees))
+    g.challengers = set(challenge.challenger.name for challenge in g.challenges)
+    g.defenders = set(challenge.defender.name for challenge in g.challenges)
+    g.challenged_players = sorted(g.challengers.union(g.defenders))
     g.absences = {
-                 name:details['absence'] for name,details in g.players.items()
-                 if details['absence'] is not None
-                 and len(details['absence']) > 0
+                 p.name:p.absence for p in g.players
+                 if p.absence is not None
     }
     g.drops = {
-        name:details['rank_drop_at_game'] for name,details in g.players.items()
-        if details['rank_drop_at_game'] is not None
+        p.name:p.rank_drop_at_game for p in g.players
+        if p.rank_drop_at_game is not None
     }
-    g.admins = [player['name'] for player in g.players.values() if player['admin'] == 1]
 
     try:
         calculate_ranking()
-        get_shouts()
     except Exception as e:
         flash(e)
 
@@ -147,7 +128,7 @@ def show_home():
     return render_template('index.html',
         shouts=g.shouts,
         challenged_players=g.challenged_players,
-        admin_links=(session.get('logged_in') and session['username'] in g.admins),
+        admin_links=(session.get('logged_in') and player_is_admin(session['username'])),
     )
 
 @app.route('/ranking')
@@ -164,7 +145,7 @@ def show_ranking_json():
         positions=g.positions,
         absences=g.absences,
         challengers=list(g.challengers),
-        challengees=list(g.challengees),
+        challengees=list(g.defenders),
     )
 
 @app.route('/games')
@@ -197,25 +178,12 @@ def show_game_data_raw():
 @app.route('/players')
 def show_players():
 
-    tags = {player:[] for player in g.ranking}
-    cur = g.db.execute('select player, tag from tags order by id desc')
-    for player,tag in cur.fetchall():
-        tags[player].append(tag)
-
-    players = [
-        dict(
-            name=player,
-            full_name=g.players[player]['full_name'],
-            tags=tags[player]
-        )
-        for player
-        in sorted(g.ranking)
-    ]
+    sorted_players = sorted(g.players, key=lambda p: p.name)
 
     return render_template('show_players.html',
-        players=players,
+        players=sorted_players,
         ranking=g.ranking,
-        absence='' if not session['logged_in'] else g.players[session['username']]['absence'],
+        absence='',
     )
 
 @app.route('/players/data')
@@ -239,7 +207,7 @@ def shoutbox():
     return render_template(
         'show_shoutbox.html',
         shouts = g.shouts,
-        admin_links=(session.get('logged_in') and session['username'] in g.admins),
+        admin_links=(session.get('logged_in') and player_is_admin(session['username'])),
     )
 
 @app.route('/player/absence/save', methods=['POST'])
@@ -258,7 +226,7 @@ def save_absence():
     return redirect(url_for('show_players'))
 
 @app.route('/player/tag/add', methods=['POST'])
-def add_tag():
+def add_tag_to_player():
     if not session.get('logged_in'):
         abort(401)
     if request.form.get('player') is None or len(request.form['player']) == 0:
@@ -266,11 +234,7 @@ def add_tag():
     if request.form.get('tag') is None or len(request.form['tag']) == 0:
         abort(401)
 
-    g.db.execute('insert into tags (player, tag) values (?,?);', [
-            request.form['player'],
-            request.form['tag'].lower(),
-    ])
-    g.db.commit()
+    add_tag(request.form['player'], request.form['tag'].lower())
     flash("Tag was saved")
 
     save_shout('Ladder', "Someone saw it fit to attribute <b>{}</b> with the tag <span class=\"tag\">{}</span>.".format(
@@ -409,7 +373,7 @@ def add_shout():
 def edit_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in g.admins:
+    if not player_is_admin(session['username']):
         abort(401)
 
     if request.method == 'GET':
@@ -430,7 +394,7 @@ def edit_shout(shout_id):
 def remove_shout(shout_id):
     if not session.get('logged_in'):
         abort(401)
-    if not session['username'] in g.admins:
+    if not player_is_admin(session['username']):
         abort(401)
 
     g.db.execute('delete from shouts where id=?;', [
@@ -440,12 +404,6 @@ def remove_shout(shout_id):
     flash('Shout has been deleted.')
     return redirect(url_for('shoutbox'))
 
-def save_shout(player, shout):
-    g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [
-        player,
-        shout,
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-    ])
     g.db.commit()
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -480,7 +438,7 @@ def manage(item_type):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    if not session['username'] in g.admins:
+    if not player_is_admin(session['username']):
         abort(401)
 
     item_details = dict(

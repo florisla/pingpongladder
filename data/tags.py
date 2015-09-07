@@ -1,6 +1,6 @@
 
 from data.datamodel import Player, Tag
-from tournament import db
+from data.database import db
 
 def add_tag(player, tag):
     db.session.add(Tag(

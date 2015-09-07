@@ -5,10 +5,6 @@ from data.database import db
 def get_players():
     return db.session.query(Player).all()
 
-# FIXME not sure if this is used
-def get_player(player_name):
-    return db.session.query(Player).filter(Player.name == player_name).one()
-
 def player_is_admin(player_name):
     try:
         db.session.query(Player).filter(Player.name == player_name).filter(Player.admin == True).one()

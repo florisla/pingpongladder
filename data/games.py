@@ -1,6 +1,6 @@
 
 from data.datamodel import Game, Player
-from tournament import db
+from data.database import db
 
 def save_game(challenger, defender, scores, comment):
     db.session.add(

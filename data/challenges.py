@@ -1,7 +1,7 @@
 
 from data.datamodel import Challenge, Player
 from sqlalchemy.orm.exc import NoResultFound
-from tournament import db
+from data.database import db
 
 def add_challenge(challenger, defender):
     db.session.add(Challenge(
