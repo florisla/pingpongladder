@@ -12,13 +12,13 @@ Features
 * Shoutbox allows players to chat and discuss among each other.
 * Player can be attributed tags (nicknames) anonymously.
 * System publishes messages in the shoutbox: game scores, challenges, player tags.
+* Full database adminstration forms.
 
 Limitations
 ===========
 * Players can't register themselves, they are entered manually in the database.
 * All users share a single password -- Pingpong Ladder trusts its users.
 * There is no distinction between a 'user' of the site and a tournament 'participant'
-* Apart from  the shouts which are editable, all management is done with manual SQL queries.
 
 Installation
 ============
