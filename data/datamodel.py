@@ -1,14 +1,12 @@
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
 from sqlalchemy import Column, ForeignKey, Sequence
 from sqlalchemy import Boolean, Integer, String, Date, LargeBinary
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
 
-# To create a new tables:
-# Base.metadata.create_all(engine)
+from tournament import db
 
-class Player(Base):
+
+class Player(db.Model):
 
     __tablename__ = 'players'
     id = Column(Integer, Sequence('player_id_seq'), primary_key=True)
@@ -27,7 +25,7 @@ class Player(Base):
         )
 
 
-class Tag(Base):
+class Tag(db.Model):
 
     __tablename__ = 'tags'
     id = Column(Integer, Sequence('tag_id_seq'), primary_key=True)
@@ -43,7 +41,7 @@ class Tag(Base):
         )
 
 
-class Game(Base):
+class Game(db.Model):
 
     __tablename__ = 'games'
     id = Column(Integer, Sequence('game_id_seq'), primary_key=True)
@@ -69,12 +67,11 @@ class Game(Base):
         )
 
 
-class Shout(Base):
+class Shout(db.Model):
 
     __tablename__ = 'shouts'
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     shout = Column(String(128), nullable=False)
-    session.commit()
     player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     date = Column(Date, nullable=False, default=func.now())
 
@@ -87,7 +84,7 @@ class Shout(Base):
         )
 
 
-class Challenge(Base):
+class Challenge(db.Model):
 
     __tablename__ = 'challenges'
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)

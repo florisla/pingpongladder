@@ -1,12 +1,12 @@
 
 from data.datamodel import Game, Player
-from data.dbsession import session
+from tournament import db
 
 def save_game(challenger, defender, scores, comment):
-    session.add(
+    db.session.add(
         Game(
-            challenger=session.query(Player).filter(Player.name==challenger).one(),
-            defender=session.query(Player).filter(Player.name==defender).one(),
+            challenger=db.session.query(Player).filter(Player.name==challenger).one(),
+            defender=db.session.query(Player).filter(Player.name==defender).one(),
             score_challenger_1 = scores[0][0],
             score_defender_1 = scores[0][1],
             score_challenger_2 = scores[1][0],
@@ -16,10 +16,10 @@ def save_game(challenger, defender, scores, comment):
             game_comment=comment,
         )
     )
-    session.commit()
+    db.session.commit()
 
 def get_games():
-    return session.query(Game).order_by(Game.date.desc()).all()
+    return db.session.query(Game).order_by(Game.date.desc()).all()
 
 
 if __name__ == '__main__':

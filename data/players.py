@@ -1,14 +1,14 @@
 
 from data.datamodel import Player
-from data.dbsession import session
+from tournament import db
 
 def get_players():
-    return session.query(Player).all()
+    return db.session.query(Player).all()
 
 def set_player_absence(player_name, absence):
-    player = session.query(Player).filter(Player.name == player_name).one()
+    player = db.session.query(Player).filter(Player.name == player_name).one()
     player.absence = absence
-    session.commit()
+    db.session.commit()
 
 
 if __name__ == '__main__':

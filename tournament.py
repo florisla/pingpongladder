@@ -4,12 +4,18 @@ import datetime
 from flask import Flask, request, session, g, redirect, url_for, abort, \
                   render_template, flash, json
 
+from flask.ext.sqlalchemy import SQLAlchemy
+
 import configuration
 import hashlib
 import random
 
 app = Flask(__name__)
 app.config.from_object(configuration)
+db = SQLAlchemy(app)
+
+
+
 
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])

@@ -1,16 +1,16 @@
 
 from data.datamodel import Player, Tag
-from data.dbsession import session
+from tournament import db
 
 def add_tag(player, tag):
-    session.add(Tag(
+    db.session.add(Tag(
         tag=tag,
-        player=session.query(Player).filter(Player.name == player).one(),
+        player=db.session.query(Player).filter(Player.name == player).one(),
     ))
-    session.commit()
+    db.session.commit()
 
 def get_tags(player):
-    tags = session.query(Player).filter(Player.name == player).first().tags
+    tags = db.session.query(Player).filter(Player.name == player).first().tags
     print(tags)
     return [t.tag for t in tags]
 
