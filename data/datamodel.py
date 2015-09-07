@@ -1,9 +1,9 @@
 from sqlalchemy import Column, ForeignKey, Sequence
-from sqlalchemy import Boolean, Integer, String, Date, LargeBinary
+from sqlalchemy import Boolean, Integer, String, Date, DateTime, LargeBinary
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
 
-from tournament import db
+from data.database import db
 
 
 class Player(db.Model):
@@ -45,7 +45,7 @@ class Game(db.Model):
 
     __tablename__ = 'games'
     id = Column(Integer, Sequence('game_id_seq'), primary_key=True)
-    date = Column(Date, nullable=False, default=func.now())
+    date = Column(DateTime, nullable=False, default=func.now())
     challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     score_challenger_1 = Column(Integer, nullable=False)
@@ -73,7 +73,7 @@ class Shout(db.Model):
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     shout = Column(String(128), nullable=False)
     player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
-    date = Column(Date, nullable=False, default=func.now())
+    date = Column(DateTime, nullable=False, default=func.now())
 
     player = relationship("Player", backref=backref('shouts', order_by=id))
 
@@ -90,7 +90,7 @@ class Challenge(db.Model):
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     challenger_id = Column(Integer, ForeignKey('players.id'), nullable=False)
     defender_id = Column(Integer, ForeignKey('players.id'), nullable=False)
-    date = Column(Date, nullable=False, default=func.now())
+    date = Column(DateTime, nullable=False, default=func.now())
     active = Column(Boolean, default=True, nullable=False)
     game_id = Column(Integer, ForeignKey('games.id'), nullable=True)
 
@@ -104,4 +104,5 @@ class Challenge(db.Model):
             self.defender_id,
             self.active
         )
+
 

@@ -1,21 +1,15 @@
 
 import sqlite3
 import datetime
-from flask import Flask, request, session, g, redirect, url_for, abort, \
+from flask import request, session, g, redirect, url_for, abort, \
                   render_template, flash, json
 
-from flask.ext.sqlalchemy import SQLAlchemy
-
-import configuration
 import hashlib
 import random
 
-app = Flask(__name__)
-app.config.from_object(configuration)
-db = SQLAlchemy(app)
-
-
-
+from app import app
+from data.database import db
+import data.admin
 
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
@@ -114,6 +108,7 @@ def get_players():
 
 @app.before_request
 def before_request():
+    return
     g.db = connect_db()
     g.players = get_players()
     g.ranking = [
