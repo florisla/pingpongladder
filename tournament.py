@@ -11,6 +11,9 @@ from app import app
 from data.database import db
 import data.admin
 
+from data.players import get_players, player_is_admin
+
+
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
 
@@ -100,24 +103,18 @@ def get_challenges():
     challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
     return challenges
 
-def get_players():
-    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by initial_rank ASC;')
-    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
-    players = {p['name']:p for p in player_list}
-    return players
-
 @app.before_request
 def before_request():
-    return
-    g.db = connect_db()
+    # FIXME: do the sorting already in get_players!
     g.players = get_players()
     g.ranking = [
-        player['name'] for player in sorted(
-            g.players.values(),
-            key=lambda p: p['initial_rank']
+        player.name for player in sorted(
+            g.players,
+            key=lambda player: player.initial_rank
         )
     ]
     g.original_ranking = g.ranking[:]
+    return
     g.challenges = get_challenges()
     g.challengers = set(ch['player1'] for ch in g.challenges)
     g.challengees = set(ch['player2'] for ch in g.challenges)
