@@ -161,15 +161,6 @@ def show_games():
         swaps=g.swaps,
     )
 
-@app.route('/challenges')
-def show_challenges():
-    return render_template(
-        'show_challenges.html',
-        challenges=g.challenges,
-        players=g.ranking,
-        absence=g.absences,
-    )
-
 @app.route('/games/data')
 def show_game_data_json():
     return json.jsonify(game_details=g.game_details)
@@ -198,6 +189,15 @@ def show_games_for_players(player, other_player):
 @app.route('/games/raw')
 def show_game_data_raw():
     return json.jsonify(game_details=g.games)
+
+@app.route('/challenges')
+def show_challenges():
+    return render_template(
+        'show_challenges.html',
+        challenges=g.challenges,
+        players=g.ranking,
+        absence=g.absences,
+    )
 
 @app.route('/players')
 def show_players():
