@@ -168,6 +168,24 @@ def show_challenges():
 def show_game_data_json():
     return json.jsonify(game_details=g.game_details)
 
+@app.route('/games/<player>')
+def show_games_for_player(player):
+    return render_template(
+        'show_games.html',
+        games=[g for g in list(reversed(g.games)) if g.challenger.name == player or g.defender.name == player],
+        players=g.ranking,
+        swaps=g.swaps,
+    )
+
+@app.route('/games/<player>/against/<otherplayer>')
+def show_games_for_players(player, otherplayer):
+    return render_template(
+        'show_games.html',
+        games=[g for g in list(reversed(g.games)) if g.challenger.name in[player, otherplayer] and g.defender.name in [player, otherplayer]],
+        players=g.ranking,
+        swaps=g.swaps,
+    )
+
 @app.route('/games/raw')
 def show_game_data_raw():
     return json.jsonify(game_details=g.games)
