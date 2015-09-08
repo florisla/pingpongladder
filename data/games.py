@@ -20,7 +20,7 @@ def save_game(challenger, defender, scores, comment):
     return game
 
 def get_games():
-    return db.session.query(Game).order_by(Game.date.desc()).all()
+    return db.session.query(Game).order_by(Game.date.asc()).all()
 
 
 if __name__ == '__main__':
