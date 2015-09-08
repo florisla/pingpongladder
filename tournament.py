@@ -99,6 +99,10 @@ def calculate_ranking():
 
 @app.before_request
 def before_request():
+    if '/static/' in request.url:
+        # no need to do dynamic things on non-dynamic resources
+        return
+
     # FIXME: do the sorting according to rank already in get_players!
     g.players = get_players()
     g.ranking = [
