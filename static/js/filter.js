@@ -1,26 +1,27 @@
 function filter_games() {
     var select = document.getElementById('filter-player');
     var player = select.options[select.selectedIndex].value;
+    var new_url = '';
 
     if (player == "(anyone)") {
-        window.location = '/games';
-        return false;
-    }
-
-    var select2 = document.getElementById('filter-player2');
-    if (select2) {
-        var player2 = select2.options[select2.selectedIndex].value;
-        if (player2 == "(anyone)") {
-            window.location = "/games/" + player;
-            return false;
-        }
-
-        window.location = "/games/" + player + "/vs/" + player2;
-        return false;
+        new_url = '/games';
     }
     else {
-        window.location = "/games/" + player;
+        var select2 = document.getElementById('filter-player2');
+        if (select2) {
+            var player2 = select2.options[select2.selectedIndex].value;
+            if (player2 == "(anyone)") {
+                new_url = "/games/" + encodeURI(player);
+            }
+            else {
+                new_url = "/games/" + encodeURI(player) + "/vs/" + encodeURI(player2);
+            }
+        }
+        else {
+            new_url = "/games/" + encodeURI(player);
+        }
     }
 
+    window.location = new_url;
     return false;
 }
