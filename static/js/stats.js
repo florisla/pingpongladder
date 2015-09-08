@@ -109,7 +109,7 @@ function games_per_player(game_details) {
 }
 
 function games_time_per_day (game_details) {
-    date_time_format = d3.time.format('%Y-%m-%d %H:%M');
+    date_time_format = d3.time.format('%Y-%m-%d %H:%M:%S');
     dates = [];
     for (var game in game_details) {
         date_time = date_time_format.parse(game_details[game].date);
