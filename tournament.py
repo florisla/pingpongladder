@@ -63,7 +63,7 @@ def calculate_ranking():
         challenger_lost = player2_won([game.score_challenger_1, game.score_challenger_2, game.score_challenger_3], [game.score_defender_1, game.score_defender_2, game.score_defender_3]);
         if challenger_lost:
             if swap_ranking(game.defender.name, game.challenger.name):
-                g.swaps.append((g.defender.name, game.challenger.name))
+                g.swaps.append((game.defender.name, game.challenger.name))
         else:
             if swap_ranking(game.challenger.name, game.defender.name):
                 g.swaps.append((game.challenger.name, game.defender.name))
