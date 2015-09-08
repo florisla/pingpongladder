@@ -554,7 +554,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
         .enter()
         .append('circle')
         .attr('class', 'playerdot')
-        .attr('cx', function(d) { console.log(x(d.value.total_games - d.value.total_games_won)); return x(d.value.total_games - d.value.total_games_won); } )
+        .attr('cx', function(d) { return x(d.value.total_games - d.value.total_games_won); } )
         .attr('cy', function(d) { return y(d.value.total_games_won); } )
         .attr('r', 5)
         .attr('fill', 'steelblue');
