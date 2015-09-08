@@ -5,7 +5,7 @@
   {% if session.logged_in %}
     <h2>Enter challenge</h2>
 
-    <form action="{{ url_for('add_challenge') }}" method=post class=add-challenge>
+    <form action="{{ url_for('add_challenge_page') }}" method=post class=add-challenge>
         {% if session.username == 'Floris' %}
             Challenger: <select name="player1"><option name="none" selected> </option>
                 {% for player in players %}
@@ -16,7 +16,7 @@
             Challenger: <select name="player1"><option name="{{ session.username }}" selected>{{ session.username }}</option></select><br />
         {% endif %}
 
-        Challengee: <select name="player2"><option name="none" selected> </option>
+        Defender: <select name="player2"><option name="none" selected> </option>
             {% for player in players %}
                 <option name="{{ player }}">{{ player }}</option>
             {% endfor %}
@@ -39,7 +39,7 @@
   <h2>Challenges</h2>
   <ul class=challenges>
   {% for challenge in challenges %}
-    <li> {{ challenge['player1'] }} - {{ challenge['player2'] }}
+    <li> {{ challenge.challenger.name }} - {{ challenge.defender.name }}
   {% endfor %}
   </ul>
 

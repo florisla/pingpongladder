@@ -109,7 +109,7 @@ function games_per_player(game_details) {
 }
 
 function games_time_per_day (game_details) {
-    date_time_format = d3.time.format('%Y-%m-%d %H:%M');
+    date_time_format = d3.time.format('%Y-%m-%d %H:%M:%S');
     dates = [];
     for (var game in game_details) {
         date_time = date_time_format.parse(game_details[game].date);
@@ -554,7 +554,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
         .enter()
         .append('circle')
         .attr('class', 'playerdot')
-        .attr('cx', function(d) { console.log(x(d.value.total_games - d.value.total_games_won)); return x(d.value.total_games - d.value.total_games_won); } )
+        .attr('cx', function(d) { return x(d.value.total_games - d.value.total_games_won); } )
         .attr('cy', function(d) { return y(d.value.total_games_won); } )
         .attr('r', 5)
         .attr('fill', 'steelblue');

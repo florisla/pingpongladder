@@ -1,18 +1,22 @@
 
 import sqlite3
 import datetime
-from flask import Flask, request, session, g, redirect, url_for, abort, \
+from flask import request, session, g, redirect, url_for, abort, \
                   render_template, flash, json
 
-import configuration
 import hashlib
 import random
 
-app = Flask(__name__)
-app.config.from_object(configuration)
+from app import app
+from data.database import db
+import data.admin
 
-def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
+from data.players import get_players, player_is_admin, set_player_absence
+from data.shouts import get_shouts, save_shout
+from data.challenges import get_challenges, link_challenge_to_game, deactiveate_challenge, deactivate_challenges, add_challenge
+from data.tags import add_tag
+from data.games import get_games, save_game
+
 
 def swap_ranking(winner, loser):
     """
@@ -32,54 +36,50 @@ def player2_won(player1_scores, player2_scores):
     if isinstance(player1_scores[0], str):
         player1_scores = [int(score) if len(score) > 0 else 0 for score in player1_scores]
         player2_scores = [int(score) if len(score) > 0 else 0 for score in player2_scores]
+    if player1_scores[2] is None:
+        player1_scores[2] = 0
+        player2_scores[2] = 0
 
     return 1 < len([score for score in zip(player1_scores, player2_scores) if score[1] > score[0]])
-
-def get_shouts(max_nr=20):
-    cur = g.db.execute('select player, shout, date, id from shouts order by date desc, id desc LIMIT ?', [max_nr])
-    g.shouts = [dict(zip(['player', 'shout', 'date', 'id'], row)) for row in cur.fetchall()]
 
 def calculate_ranking():
     if hasattr(g, 'swaps'):
         return
     g.swaps = []
     # load all games
-    cur = g.db.execute('select date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
-    g.games = [dict(zip(['date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'], row)) for row in cur.fetchall() if row[1] != '']
+    g.games = get_games()
     g.positions = {player: [-i - 1] for i,player in enumerate(g.ranking)}
     g.game_details = []
 
     is_participating = set()
 
     g.ranking = g.original_ranking[:]
-    cur = g.db.execute('select date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date asc')
+
     # for each game, determine the winner and swap ranking with the loser if necessary
+    for game in g.games:
+        is_participating.add(game.challenger.name)
+        is_participating.add(game.defender.name)
 
-    for match_date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 in cur.fetchall():
-        if player1 in [None, ''] or player2 in [None, '']:
-            # invalid row in the database; ignore
-            continue
-
-        is_participating.add(player1)
-        is_participating.add(player2)
-
-        challenger_lost = player2_won([player1_score1, player1_score2, player1_score3], [player2_score1, player2_score2, player2_score3]);
+        challenger_lost = player2_won([game.score_challenger_1, game.score_challenger_2, game.score_challenger_3], [game.score_defender_1, game.score_defender_2, game.score_defender_3]);
         if challenger_lost:
-            if swap_ranking(player2, player1):
-                g.swaps.append((player2, player1))
+            if swap_ranking(game.defender.name, game.challenger.name):
+                g.swaps.append((game.defender.name, game.challenger.name))
         else:
-            if swap_ranking(player1, player2):
-                g.swaps.append((player1, player2))
+            if swap_ranking(game.challenger.name, game.defender.name):
+                g.swaps.append((game.challenger.name, game.defender.name))
 
         g.game_details.append(dict(
-            challenger=dict(name=player1, rank=abs(g.positions[player1][-1])),
-            challengee=dict(name=player2, rank=abs(g.positions[player2][-1])),
-            scores=[(player1_score1, player2_score1), (player1_score2, player2_score2), (player1_score3, player2_score3)],
-            winner=player2 if challenger_lost else player1,
-            index=len(g.positions[player1]),
-            date=match_date,
+            challenger=dict(name=game.challenger.name, rank=abs(g.positions[game.challenger.name][-1])),
+            challengee=dict(name=game.defender.name, rank=abs(g.positions[game.challenger.name][-1])),
+            scores=[
+                (game.score_challenger_1, game.score_defender_1),
+                (game.score_challenger_2, game.score_defender_2),
+                (game.score_challenger_3, game.score_defender_3),
+            ],
+            winner=game.defender.name if challenger_lost else game.challenger.name,
+            index=len(g.positions[game.challenger.name]),
+            date=str(game.date),
         ))
-
         game_index = len(g.game_details)
 
         drops = ((player,drop_at) for player,drop_at in g.drops.items() if drop_at == game_index)
@@ -95,61 +95,38 @@ def calculate_ranking():
             else:
                 g.positions[player].append(-i - 1)
 
-def get_challenges():
-    cur = g.db.execute('select  player1, player2, date, comment from challenges order by date asc')
-    challenges = [dict(zip(['player1', 'player2', 'date', 'comment'], row)) for row in cur.fetchall()]
-    return challenges
-
-def get_players():
-    cur = g.db.execute('select  name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by initial_rank ASC;')
-    player_list = [dict(zip(['name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'], row)) for row in cur.fetchall()]
-    players = {p['name']:p for p in player_list}
-    return players
-
 @app.before_request
 def before_request():
-    g.db = connect_db()
+    # FIXME: do the sorting according to rank already in get_players!
     g.players = get_players()
     g.ranking = [
-        player['name'] for player in sorted(
-            g.players.values(),
-            key=lambda p: p['initial_rank']
+        player.name for player in sorted(
+            g.players,
+            key=lambda player: player.initial_rank
         )
     ]
     g.original_ranking = g.ranking[:]
+    g.shouts = get_shouts()
     g.challenges = get_challenges()
-    g.challengers = set(ch['player1'] for ch in g.challenges)
-    g.challengees = set(ch['player2'] for ch in g.challenges)
-    g.challenged_players = sorted(g.challengers.union(g.challengees))
+    g.challengers = set(challenge.challenger.name for challenge in g.challenges)
+    g.defenders = set(challenge.defender.name for challenge in g.challenges)
+    g.challenged_players = sorted(g.challengers.union(g.defenders))
     g.absences = {
-                 name:details['absence'] for name,details in g.players.items()
-                 if details['absence'] is not None
-                 and len(details['absence']) > 0
+                 p.name:str(p.absence) for p in g.players
+                 if p.absence is not None
     }
     g.drops = {
-        name:details['rank_drop_at_game'] for name,details in g.players.items()
-        if details['rank_drop_at_game'] is not None
+        p.name:p.rank_drop_at_game for p in g.players
+        if p.rank_drop_at_game is not None
     }
-    g.admins = [player['name'] for player in g.players.values() if player['admin'] == 1]
 
-    try:
-        calculate_ranking()
-        get_shouts()
-    except Exception as e:
-        flash(e)
-
-@app.teardown_request
-def teardown_request(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
+    calculate_ranking()
 
 @app.route('/')
 def show_home():
     return render_template('index.html',
         shouts=g.shouts,
         challenged_players=g.challenged_players,
-        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/ranking')
@@ -166,12 +143,11 @@ def show_ranking_json():
         positions=g.positions,
         absences=g.absences,
         challengers=list(g.challengers),
-        challengees=list(g.challengees),
+        challengees=list(g.defenders),
     )
 
 @app.route('/games')
 def show_games():
-
     return render_template(
         'show_games.html',
         games=list(reversed(g.games)),
@@ -199,25 +175,12 @@ def show_game_data_raw():
 @app.route('/players')
 def show_players():
 
-    tags = {player:[] for player in g.ranking}
-    cur = g.db.execute('select player, tag from tags order by id desc')
-    for player,tag in cur.fetchall():
-        tags[player].append(tag)
-
-    players = [
-        dict(
-            name=player,
-            full_name=g.players[player]['full_name'],
-            tags=tags[player]
-        )
-        for player
-        in sorted(g.ranking)
-    ]
+    sorted_players = sorted(g.players, key=lambda p: p.name)
 
     return render_template('show_players.html',
-        players=players,
+        players=sorted_players,
         ranking=g.ranking,
-        absence='' if not session['logged_in'] else g.players[session['username']]['absence'],
+        absence='',
     )
 
 @app.route('/players/data')
@@ -235,13 +198,10 @@ def show_stats():
 
 @app.route('/shoutbox')
 def shoutbox():
-
     get_shouts(2000)
-
     return render_template(
         'show_shoutbox.html',
         shouts = g.shouts,
-        admin_links=(session.get('logged_in') and session['username'] in g.admins),
     )
 
 @app.route('/player/absence/save', methods=['POST'])
@@ -251,16 +211,12 @@ def save_absence():
     if request.form.get('absence') is None:
         abort(401)
 
-    g.db.execute('update players set absence=? where name=?;', [
-        request.form['absence'],
-        session['username'],
-    ])
-    g.db.commit()
+    set_player_absence(session['username'], request.form['absence'])
     flash("Absence was saved")
     return redirect(url_for('show_players'))
 
 @app.route('/player/tag/add', methods=['POST'])
-def add_tag():
+def add_tag_to_player():
     if not session.get('logged_in'):
         abort(401)
     if request.form.get('player') is None or len(request.form['player']) == 0:
@@ -268,14 +224,10 @@ def add_tag():
     if request.form.get('tag') is None or len(request.form['tag']) == 0:
         abort(401)
 
-    g.db.execute('insert into tags (player, tag) values (?,?);', [
-            request.form['player'],
-            request.form['tag'].lower(),
-    ])
-    g.db.commit()
+    add_tag(request.form['player'], request.form['tag'].lower())
     flash("Tag was saved")
 
-    save_shout('Ladder', "Someone saw it fit to attribute <b>{}</b> with the tag <span class=\"tag\">{}</span>.".format(
+    save_shout(None, "Someone saw it fit to attribute <b>{}</b> with the tag <span class=\"tag\">{}</span>.".format(
         request.form['player'],
         request.form['tag'].lower()
     ))
@@ -288,51 +240,39 @@ def add_game():
         abort(401)
 
     comment = request.form['comment'] if 'comment' in request.form else ''
-
-    g.db.execute('insert into games (date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3, comment) values (?,?,?,?,?,?,?,?,?,?);', [
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            request.form['player1'],
-            request.form['player2'],
-            request.form['player1_score1'],
-            request.form['player2_score1'],
-            request.form['player1_score2'],
-            request.form['player2_score2'],
-            request.form['player1_score3'],
-            request.form['player2_score3'],
-            comment,
-    ])
-    g.db.commit()
+    game = save_game(
+        request.form['player1'],
+        request.form['player2'],
+        (
+            (request.form['player1_score1'], request.form['player2_score1']),
+            (request.form['player1_score2'], request.form['player2_score2']),
+            (request.form['player1_score3'], request.form['player2_score3']),
+        ),
+        comment,
+    )
     flash("Game result was saved")
-
-    g.db.execute('delete from challenges where player1=? and player2=?;', [
-            request.form['player1'],
-            request.form['player2'],
-    ])
-    g.db.commit()
+    link_challenge_to_game(game)
     flash("Open challenge (if any) was removed")
 
     challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
     if challenger_lost:
-        winner = request.form['player2']
+        winner = game.defender
         shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
     else:
-        winner = request.form['player1']
+        winner = game.challenger
         shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
 
     if len(comment) > 0:
         comment = '<div class="gamecomment">{0}</div>'.format(comment)
 
-    # find winner's nickname in the tags table
-    cur = g.db.execute("select tag from tags where player =?", [winner])
-    tags = [row[0] for row in cur.fetchall()]
-
+    # pick one of the winner's nicknames
     nickname = ''
-    if any(tags):
+    if any(winner.tags):
         nickname = " '<span class=\"tag\">{}</span>' ".format(
-            random.choice(tags)
+            random.choice(winner.tags)
         )
 
-    save_shout('Ladder', shout_message.format(
+    save_shout(None, shout_message.format(
         player1=request.form['player1'],
         player2=request.form['player2'],
         nick=nickname,
@@ -349,7 +289,7 @@ def add_game():
     return redirect(url_for('show_games'))
 
 @app.route('/challenges/add', methods=['POST'])
-def add_challenge():
+def add_challenge_page():
     if not session.get('logged_in'):
         abort(401)
 
@@ -369,16 +309,10 @@ def add_challenge():
         flash("Player {} is already challenged.".format(request.form['player2']), 'error')
         return redirect(url_for('show_challenges'))
 
-    g.db.execute('insert into challenges (date, player1, player2, comment) values (?,?,?,?)', [
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            request.form['player1'],
-            request.form['player2'],
-            request.form['comment'],
-    ])
-    g.db.commit()
+    add_challenge(request.form['player1'], request.form['player2'])
     flash("Challenge was saved")
 
-    save_shout('Ladder', "<b>{0}</b> challenged <b>{1}</b>".format(
+    save_shout(None, "<b>{0}</b> challenged <b>{1}</b>".format(
         request.form['player1'],
         request.form['player2']
     ))
@@ -390,12 +324,8 @@ def remove_challenge():
     if not session.get('logged_in'):
         abort(401)
 
-    g.db.execute('delete from challenges where player1=?', [
-        session['username']
-    ])
-    g.db.commit()
+    deactiveate_challenges(session['username'])
     flash("Your current challenge (if any) was removed")
-
     return redirect(url_for('show_challenges'))
 
 @app.route('/shoutbox/shout', methods=['POST'])
@@ -406,49 +336,6 @@ def add_shout():
     save_shout(session['username'], request.form['shout'])
     flash('Your shout is heard.')
     return redirect(url_for('show_home'))
-
-@app.route('/shoutbox/edit/<int:shout_id>', methods=['GET', 'POST'])
-def edit_shout(shout_id):
-    if not session.get('logged_in'):
-        abort(401)
-    if not session['username'] in g.admins:
-        abort(401)
-
-    if request.method == 'GET':
-        shout = next(iter(s for s in g.shouts if s['id']==shout_id))
-        return render_template('edit-shout.html', shout=shout)
-    if request.method == 'POST':
-        g.db.execute('update shouts set shout=? where id=?;', [
-            request.form['shout'],
-            shout_id,
-        ])
-        g.db.commit()
-        flash('Shout has been updated.')
-        return redirect(url_for('shoutbox'))
-
-    abort(401)
-
-@app.route('/shoutbox/delete/<int:shout_id>', methods=['POST'])
-def remove_shout(shout_id):
-    if not session.get('logged_in'):
-        abort(401)
-    if not session['username'] in g.admins:
-        abort(401)
-
-    g.db.execute('delete from shouts where id=?;', [
-        shout_id,
-    ])
-    g.db.commit()
-    flash('Shout has been deleted.')
-    return redirect(url_for('shoutbox'))
-
-def save_shout(player, shout):
-    g.db.execute('insert into shouts (player, shout, date) values (?,?,?)', [
-        player,
-        shout,
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-    ])
-    g.db.commit()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -476,68 +363,6 @@ def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return redirect(url_for('show_home'))
-
-@app.route('/internal/manage/<item_type>', methods=['GET', 'POST'])
-def manage(item_type):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    if not session['username'] in g.admins:
-        abort(401)
-
-    item_details = dict(
-        games = dict(
-            title = 'Games',
-            query = 'select id, date, player1, player2, player1_score1, player2_score1, player1_score2, player2_score2, player1_score3, player2_score3 from games order by date desc',
-            columns = ['id', 'date', 'player1', 'player2', 'player1_score1', 'player2_score1', 'player1_score2', 'player2_score2', 'player1_score3', 'player2_score3'],
-        ),
-        challenges = dict(
-            title = 'Challenges',
-            query = 'select id, date, player1, player2, comment from challenges order by date desc',
-            columns = ['id', 'date', 'player1', 'player2', 'comment'],
-
-        ),
-        shouts = dict(
-            title = 'Shouts',
-            query = 'select id, player, shout, date from shouts order by date desc',
-            columns = ['id', 'player', 'shout', 'date'],
-
-        ),
-        players = dict(
-            title = 'Players',
-            query = 'select id, name, full_name, initial_rank, absence, rank_drop_at_game, admin from players order by id desc',
-            columns = ['id', 'name', 'full_name', 'initial_rank', 'absence', 'rank_drop_at_game', 'admin'],
-
-        ),
-        tags = dict(
-            title = 'Tags',
-            query = 'select id, player, tag from tags order by id desc',
-            columns = ['id', 'player', 'tag'],
-        ),
-    )
-
-    if item_type not in item_details:
-        abort(401)
-
-    if request.method == 'POST':
-        try:
-            cur = g.db.execute(request.form['query'])
-            items = [dict(zip(range(100), r)) for r in cur.fetchall()]
-            g.db.commit()
-            flash('Query is executed')
-        except Exception as e:
-            flash(e)
-
-    elif request.method == 'GET':
-        cur = g.db.execute(item_details[item_type]['query'])
-        items = [dict(zip(item_details[item_type]['columns'], row)) for row in cur.fetchall()]
-
-    return render_template(
-        'manage.html',
-        title=item_details[item_type]['title'],
-        items=items,
-        item_type = item_type,
-    )
 
 
 if __name__ == '__main__':
