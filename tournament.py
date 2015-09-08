@@ -72,7 +72,7 @@ def calculate_ranking():
 
         g.game_details.append(dict(
             challenger=dict(name=game.challenger.name, rank=abs(g.positions[game.challenger.name][-1])),
-            challengee=dict(name=game.defender.name, rank=abs(g.positions[game.challenger.name][-1])),
+            challengee=dict(name=game.defender.name, rank=abs(g.positions[game.defender.name][-1])),
             scores=[
                 (game.score_challenger_1, game.score_defender_1),
                 (game.score_challenger_2, game.score_defender_2),
