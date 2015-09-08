@@ -62,9 +62,11 @@ def calculate_ranking():
 
         challenger_lost = player2_won([game.score_challenger_1, game.score_challenger_2, game.score_challenger_3], [game.score_defender_1, game.score_defender_2, game.score_defender_3]);
         if challenger_lost:
+            game.winner = game.defender.name
             if swap_ranking(game.defender.name, game.challenger.name):
                 g.swaps.append((game.defender.name, game.challenger.name))
         else:
+            game.winner = game.challenger.name
             if swap_ranking(game.challenger.name, game.defender.name):
                 g.swaps.append((game.challenger.name, game.defender.name))
 
@@ -167,6 +169,27 @@ def show_challenges():
 @app.route('/games/data')
 def show_game_data_json():
     return json.jsonify(game_details=g.game_details)
+
+@app.route('/games/<player>')
+def show_games_for_player(player):
+    return render_template(
+        'show_games.html',
+        games=[g for g in list(reversed(g.games)) if g.challenger.name == player or g.defender.name == player],
+        players=g.ranking,
+        swaps=g.swaps,
+        filtered_player=player,
+    )
+
+@app.route('/games/<player>/vs/<other_player>')
+def show_games_for_players(player, other_player):
+    return render_template(
+        'show_games.html',
+        games=[g for g in list(reversed(g.games)) if g.challenger.name in[player, other_player] and g.defender.name in [player, other_player]],
+        players=g.ranking,
+        swaps=g.swaps,
+        filtered_player=player,
+        filtered_player2=other_player,
+    )
 
 @app.route('/games/raw')
 def show_game_data_raw():
