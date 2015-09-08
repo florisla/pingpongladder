@@ -5,7 +5,7 @@
   {% if session.logged_in %}
     <h2>Enter challenge</h2>
 
-    <form action="{{ url_for('add_challenge') }}" method=post class=add-challenge>
+    <form action="{{ url_for('add_challenge_page') }}" method=post class=add-challenge>
         {% if session.username == 'Floris' %}
             Challenger: <select name="player1"><option name="none" selected> </option>
                 {% for player in players %}

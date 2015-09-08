@@ -3,12 +3,16 @@ from data.datamodel import Player, Shout
 from data.database import db
 
 def get_shouts(max_shouts=20):
-    return db.session.query(Shout).order_by(Shout.date).order_by(Shout.id).limit(max_shouts).all()
+    return db.session.query(Shout).order_by(Shout.date).order_by(Shout.date.asc()).order_by(Shout.id.asc()).limit(max_shouts).all()
 
 def save_shout(author, shout_message):
+    player = None
+    if author is not None:
+        player = db.session.query(Player).filter(Player.name == author).one()
+
     db.session.add(Shout(
-        shout = shout_message,
-        player = db.session.query(Player).filter(Player.name == author).one(),
+        shout=shout_message,
+        player=player,
     ))
     db.session.commit()
 

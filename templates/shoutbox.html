@@ -11,10 +11,8 @@
   <h2>Shoutbox</h2>
   <ul class=shouts>
   {% for shout in shouts %}
-    <li> <span class="shouter">[{{ shout.player.name }}]</span> - {{ shout['shout']|safe }}
-    {% if admin_links %}
-      &nbsp;|<a href="{{ url_for('edit_shout', shout_id=shout['id']) }}">edit</a>
-    {% endif %}
+    <li>
+      <span class="shouter">{{ shout.player.name if shout.player != None else 'Ladder' }}</span> - {{ shout['shout']|safe }}
     </li>
   {% endfor %}
   </ul>

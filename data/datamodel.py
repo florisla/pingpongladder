@@ -72,7 +72,7 @@ class Shout(db.Model):
     __tablename__ = 'shouts'
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
     shout = Column(String(128), nullable=False)
-    player_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    player_id = Column(Integer, ForeignKey('players.id'), nullable=True)
     date = Column(DateTime, nullable=False, default=func.now())
 
     player = relationship("Player", backref=backref('shouts', order_by=id))
