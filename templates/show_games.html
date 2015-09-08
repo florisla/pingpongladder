@@ -60,7 +60,6 @@
   <h2>Games</h2>
   <ul class=games>
   {% for game in games %}
-      {{ game.winner }}
     <li> <span class="player {{'winner' if game.winner == filtered_player and game.winner == game.challenger.name }}{{ 'loser' if game.winner != filtered_player and filtered_player == game.challenger.name }}">{{ game.challenger.name }}</span> -
     <span class="player {{'winner' if game.winner == filtered_player and game.winner == game.defender.name }} {{ 'loser' if game.winner != filtered_player and filtered_player == game.defender.name }}"> {{ game.defender.name }}</span>:
     <span class='score'>{{ game.score_challenger_1 }}-{{ game.score_defender_1 }}</span>,
