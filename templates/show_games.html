@@ -39,6 +39,24 @@
       <li>{{ games|count }} games played
   </ul>
 
+  <h2>Filter</h2>
+    <form action="" method=get>
+        <select name="player1" id="filter-player" onchange="filter_games();"><option name="none" {{ 'selected' if not filtered_player }}>(anyone)</option>
+            {% for player in players %}
+                <option name="{{ player }}" {{ 'selected' if player==filtered_player }}>{{ player }}</option>
+            {% endfor %}
+        </select>
+        {% if filtered_player %}
+        vs
+        <select name="player2" id="filter-player2" onchange="filter_games();"><option name="anyone" {{ 'selected' if not filtered_player2 }}>(anyone)</option>
+            {% for player in players %}
+                 <option name="{{ player }}" {{ 'selected' if player==filtered_player2 }}>{{ player }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <br /><br />
+    </form>
+
   <h2>Games</h2>
   <ul class=games>
   {% for game in games %}
@@ -50,7 +68,7 @@
   {% endfor %}
   </ul>
 
-
+<script src="/static/js/filter.js"></script>
 
 {% endblock %}
 

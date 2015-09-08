@@ -175,15 +175,18 @@ def show_games_for_player(player):
         games=[g for g in list(reversed(g.games)) if g.challenger.name == player or g.defender.name == player],
         players=g.ranking,
         swaps=g.swaps,
+        filtered_player=player,
     )
 
-@app.route('/games/<player>/against/<otherplayer>')
-def show_games_for_players(player, otherplayer):
+@app.route('/games/<player>/vs/<other_player>')
+def show_games_for_players(player, other_player):
     return render_template(
         'show_games.html',
-        games=[g for g in list(reversed(g.games)) if g.challenger.name in[player, otherplayer] and g.defender.name in [player, otherplayer]],
+        games=[g for g in list(reversed(g.games)) if g.challenger.name in[player, other_player] and g.defender.name in [player, other_player]],
         players=g.ranking,
         swaps=g.swaps,
+        filtered_player=player,
+        filtered_player2=other_player,
     )
 
 @app.route('/games/raw')
