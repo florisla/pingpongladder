@@ -120,10 +120,7 @@ def before_request():
         if p.rank_drop_at_game is not None
     }
 
-    try:
-        calculate_ranking()
-    except Exception as e:
-        flash(e)
+    calculate_ranking()
 
 @app.route('/')
 def show_home():
