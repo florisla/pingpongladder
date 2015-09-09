@@ -235,8 +235,10 @@ def save_absence():
         abort(401)
 
     if len(request.form['absence'].strip()) == 0:
+        # absence date is being cleared
         absence_date = None
     else:
+        # try to parse the date
         try:
             absence_date = datetime.datetime.strptime(
                 request.form['absence'].strip(),
@@ -256,8 +258,9 @@ def add_tag_to_player():
         abort(401)
     if request.form.get('player') is None or len(request.form['player']) == 0:
         abort(401)
-    if request.form.get('tag') is None or len(request.form['tag']) == 0:
-        abort(401)
+    if request.form.get('tag') is None or len(request.form['tag'].strip()) == 0:
+        flash('Please enter a valid tag', 'error')
+        return redirect(url_for('show_players'))
 
     add_tag(request.form['player'], request.form['tag'].lower())
     flash("Tag was saved")
@@ -273,23 +276,35 @@ def add_tag_to_player():
 def add_game():
     if not session.get('logged_in'):
         abort(401)
+    if request.form['player1'] not in g.ranking:
+        abort(401)
+    if request.form['player2'] not in g.ranking:
+        abort(401)
 
-    comment = request.form['comment'] if 'comment' in request.form else ''
+    scores = (
+        (request.form['player1_score1'], request.form['player2_score1']),
+        (request.form['player1_score2'], request.form['player2_score2']),
+        (request.form['player1_score3'], request.form['player2_score3']),
+    )
+
+    for game in scores:
+        for score in game:
+            if len(score) > 0 and not score.isnumeric():
+                abort(401)
+
+    comment = request.form.get('comment', '')
     game = save_game(
         request.form['player1'],
         request.form['player2'],
-        (
-            (request.form['player1_score1'], request.form['player2_score1']),
-            (request.form['player1_score2'], request.form['player2_score2']),
-            (request.form['player1_score3'], request.form['player2_score3']),
-        ),
+        scores,
         comment,
     )
     flash("Game result was saved")
+
     link_challenge_to_game(game)
     flash("Open challenge (if any) was removed")
 
-    challenger_lost = player2_won([request.form['player1_score1'], request.form['player1_score2'], request.form['player1_score3']], [request.form['player2_score1'], request.form['player2_score2'], request.form['player2_score3']]);
+    challenger_lost = player2_won([scores[0][0], scores[1][0], scores[2][0]], [scores[0][1], scores[1][1], scores[2][2]]);
     if challenger_lost:
         winner = game.defender
         shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
@@ -327,6 +342,10 @@ def add_game():
 def add_challenge_page():
     if not session.get('logged_in'):
         abort(401)
+    if request.form['player1'] not in g.ranking:
+        abort(401)
+    if request.form['player2'] not in g.ranking:
+        abort(401)
 
     # do not log a challenge to anyone who is the source or target
     # of another challenge
@@ -361,6 +380,7 @@ def remove_challenge():
 
     deactivate_challenges(session['username'])
     flash("Your current challenge (if any) was removed")
+
     return redirect(url_for('show_challenges'))
 
 @app.route('/shoutbox/shout', methods=['POST'])
