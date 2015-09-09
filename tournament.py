@@ -323,16 +323,16 @@ def add_challenge_page():
     # do not log a challenge to anyone who is the source or target
     # of another challenge
 
-    if any(chal for chal in g.challenges if chal['player1'] == request.form['player1']):
+    if any(chal for chal in g.challenges if chal.challenger.name == request.form['player1']):
         flash("You already have an open challenge.", 'error')
         return redirect(url_for('show_challenges'))
-    if any(chal for chal in g.challenges if chal['player2'] == request.form['player1']):
+    if any(chal for chal in g.challenges if chal.defender.name == request.form['player1']):
         flash("You are already challanged.", 'error')
         return redirect(url_for('show_challenges'))
-    if any(chal for chal in g.challenges if chal['player1'] == request.form['player2']):
+    if any(chal for chal in g.challenges if chal.challenger.name == request.form['player2']):
         flash("Player {} already has an open challenge.".format(request.form['player2']), 'error')
         return redirect(url_for('show_challenges'))
-    if any(chal for chal in g.challenges if chal['player2'] == request.form['player2']):
+    if any(chal for chal in g.challenges if chal.defender.name == request.form['player2']):
         flash("Player {} is already challenged.".format(request.form['player2']), 'error')
         return redirect(url_for('show_challenges'))
 
