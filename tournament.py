@@ -234,7 +234,7 @@ def save_absence():
     if request.form.get('absence') is None:
         abort(401)
 
-    if len(request.form['absence']).strip() == 0:
+    if len(request.form['absence'].strip()) == 0:
         absence_date = None
     else:
         try:
