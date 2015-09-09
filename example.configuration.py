@@ -13,5 +13,5 @@ PASSWORD_HASH = b'\x1c\xc10\x82\x06\xfb\x1aW\xe8\xbf/\xbb\x0eR\x0e\xbc\xbe\x1a\x
 #   hasher = hashlib.sha512()
 #   hasher.update(salt + password)
 #   hash = hasher.digest()
-#   print("Salt: {}\nHash: {}".format(salt, hash))
+#   print("Salt: {0}\nHash: {1}".format(salt, hash))
 

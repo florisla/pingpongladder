@@ -265,9 +265,9 @@ def add_tag_to_player():
     add_tag(request.form['player'], request.form['tag'].lower())
     flash("Tag was saved")
 
-    save_shout(None, "Someone saw it fit to attribute <b>{}</b> with the tag <span class=\"tag\">{}</span>.".format(
-        request.form['player'],
-        request.form['tag'].lower()
+    save_shout(None, "Someone saw it fit to attribute <b>{player}</b> with the tag <span class=\"tag\">{tag_lowercase}</span>.".format(
+        tag_lowercase=request.form['tag'].lower(),
+        **request.form
     ))
 
     return redirect(url_for('show_players'))
@@ -304,34 +304,29 @@ def add_game():
     link_challenge_to_game(game)
     flash("Open challenge (if any) was removed")
 
-    challenger_lost = player2_won([scores[0][0], scores[1][0], scores[2][0]], [scores[0][1], scores[1][1], scores[2][2]]);
+    challenger_lost = player2_won([scores[0][0], scores[1][0], scores[2][0]], [scores[0][1], scores[1][1], scores[2][1]]);
     if challenger_lost:
         winner = game.defender
-        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
+        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {score[0][0]}-{score[0][1]} {score[1][0]}-{score[1][1]} {score[2][0]}{dash}{score[2]1[]}{comment}'
     else:
         winner = game.challenger
-        shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {player1_score1}-{player2_score1} {player1_score2}-{player2_score2} {player1_score3}{dash}{player2_score3}{comment}'
+        shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {score[0][0]}-{score[0][1]} {score[1][0]}-{score[1][1]} {score[2][0]}{dash}{score[2][1]}{comment}'
 
     if len(comment) > 0:
-        comment = '<div class="gamecomment">{0}</div>'.format(comment)
+        comment = '<div class="gamecomment">{comment}</div>'.format(comment=comment)
 
     # pick one of the winner's nicknames
     nickname = ''
     if any(winner.tags):
-        nickname = " '<span class=\"tag\">{}</span>' ".format(
-            random.choice(winner.tags).tag
+        nickname = " '<span class=\"tag\">{random_tag}</span>' ".format(
+            random_tag=random.choice(winner.tags).tag
         )
 
     save_shout(None, shout_message.format(
         player1=request.form['player1'],
         player2=request.form['player2'],
         nick=nickname,
-        player1_score1=request.form['player1_score1'],
-        player1_score2=request.form['player1_score2'],
-        player1_score3=request.form['player1_score3'],
-        player2_score1=request.form['player2_score1'],
-        player2_score2=request.form['player2_score2'],
-        player2_score3=request.form['player2_score3'],
+        score=scores,
         dash='-' if request.form['player1_score3'] else '',
         comment=comment
     ))
@@ -357,19 +352,16 @@ def add_challenge_page():
         flash("You are already challanged.", 'error')
         return redirect(url_for('show_challenges'))
     if any(chal for chal in g.challenges if chal.challenger.name == request.form['player2']):
-        flash("Player {} already has an open challenge.".format(request.form['player2']), 'error')
+        flash("Player {player2} already has an open challenge.".format(**request.form), 'error')
         return redirect(url_for('show_challenges'))
     if any(chal for chal in g.challenges if chal.defender.name == request.form['player2']):
-        flash("Player {} is already challenged.".format(request.form['player2']), 'error')
+        flash("Player {player2} is already challenged.".format(**request.form), 'error')
         return redirect(url_for('show_challenges'))
 
     add_challenge(request.form['player1'], request.form['player2'])
     flash("Challenge was saved")
 
-    save_shout(None, "<b>{0}</b> challenged <b>{1}</b>".format(
-        request.form['player1'],
-        request.form['player2']
-    ))
+    save_shout(None, "<b>{player1}</b> challenged <b>{player2}</b>".format(**request.form))
 
     return redirect(url_for('show_challenges'))
 
@@ -409,7 +401,7 @@ def login():
         else:
             session['logged_in'] = True
             session['username'] = request.form['username']
-            flash("You were logged in as '{}'".format(session['username']))
+            flash("You were logged in as '{username}'".format(**session))
             return redirect(url_for('show_home'))
     return render_template('login.html', error=error, users=g.ranking)
 
