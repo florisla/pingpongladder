@@ -23,15 +23,6 @@ def deactivate_challenges(challenger_name):
     challenge.active = False
     db.session.commit()
 
-def deactiveate_challenge(challenger_name, defender_name):
-    try:
-        challenge = db.session.query(Challenge).filter(Challenge.challenger.name == challenger_name).filter(Challenge.defender.name == defender_name).one()
-    except NoResultFound:
-        return
-
-    challenge.active = False
-    db.session.commit()
-
 def link_challenge_to_game(game):
     try:
         challenge = db.session.query(Challenge).filter(Challenge.challenger_id == game.challenger_id).filter(Challenge.defender_id == game.defender_id).filter(Challenge.active == True).one()

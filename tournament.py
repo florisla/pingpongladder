@@ -13,7 +13,7 @@ import data.admin
 
 from data.players import get_players, player_is_admin, set_player_absence
 from data.shouts import get_shouts, save_shout
-from data.challenges import get_challenges, link_challenge_to_game, deactiveate_challenge, deactivate_challenges, add_challenge
+from data.challenges import get_challenges, link_challenge_to_game, deactivate_challenges, add_challenge
 from data.tags import add_tag
 from data.games import get_games, save_game
 
