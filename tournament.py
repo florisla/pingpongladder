@@ -296,7 +296,7 @@ def add_game():
     nickname = ''
     if any(winner.tags):
         nickname = " '<span class=\"tag\">{}</span>' ".format(
-            random.choice(winner.tags)
+            random.choice(winner.tags).tag
         )
 
     save_shout(None, shout_message.format(
