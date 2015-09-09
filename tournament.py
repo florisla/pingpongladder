@@ -351,7 +351,7 @@ def remove_challenge():
     if not session.get('logged_in'):
         abort(401)
 
-    deactiveate_challenges(session['username'])
+    deactivate_challenges(session['username'])
     flash("Your current challenge (if any) was removed")
     return redirect(url_for('show_challenges'))
 
