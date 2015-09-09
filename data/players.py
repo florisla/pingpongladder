@@ -17,6 +17,10 @@ def set_player_absence(player_name, absence):
     player.absence = absence
     db.session.commit()
 
+def get_player_absence(player_name):
+    player = db.session.query(Player).filter(Player.name == player_name).one()
+    return player.absence
+
 
 if __name__ == '__main__':
     #print([p.tags for p in get_players()])

@@ -6,7 +6,7 @@
   {% if session.logged_in %}
     I am absent until (yyyy-mm-dd):<br />
     <form action="{{ url_for('save_absence') }}" method="post" class="absence">
-    <input type=text size=25 name=absence value="{{ absence }} "/>
+    <input type=text size=25 name=absence value="{{ absence or '' }} "/>
     <input type="submit" value="Save" /><br />
     </form>
     <br />

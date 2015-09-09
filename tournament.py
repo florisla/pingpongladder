@@ -11,7 +11,7 @@ from app import app
 from data.database import db
 import data.admin
 
-from data.players import get_players, player_is_admin, set_player_absence
+from data.players import get_players, player_is_admin, set_player_absence, get_player_absence
 from data.shouts import get_shouts, save_shout
 from data.challenges import get_challenges, link_challenge_to_game, deactivate_challenges, add_challenge
 from data.tags import add_tag
@@ -203,7 +203,7 @@ def show_players():
     return render_template('show_players.html',
         players=sorted_players,
         ranking=g.ranking,
-        absence='',
+        absence=get_player_absence(session['username']) if session.get('logged_in') else ''
     )
 
 @app.route('/players/data')
@@ -234,7 +234,19 @@ def save_absence():
     if request.form.get('absence') is None:
         abort(401)
 
-    set_player_absence(session['username'], request.form['absence'])
+    if len(request.form['absence']).strip() == 0:
+        absence_date = None
+    else:
+        try:
+            absence_date = datetime.datetime.strptime(
+                request.form['absence'].strip(),
+                '%Y-%m-%d'
+            )
+        except ValueError:
+            flash('Date was not in the correct format', 'error')
+            return redirect(url_for('show_players'))
+
+    set_player_absence(session['username'], absence_date)
     flash("Absence was saved")
     return redirect(url_for('show_players'))
 
