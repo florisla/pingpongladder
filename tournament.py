@@ -186,10 +186,6 @@ def show_games_for_players(player, other_player):
         filtered_player2=other_player,
     )
 
-@app.route('/games/raw')
-def show_game_data_raw():
-    return json.jsonify(game_details=g.games)
-
 @app.route('/challenges')
 def show_challenges():
     return render_template(
