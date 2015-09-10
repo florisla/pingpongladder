@@ -20,8 +20,8 @@ class Player(db.Model):
     password_hash = Column(LargeBinary(128))
 
     def __repr__(self):
-        return "Player(name='{}', full_name='{}'>".format(
-            self.name, self.full_name
+        return "Player(name='{player.name}', full_name='{player.full_name}'>".format(
+            player=self
         )
 
     def __str__(self):
@@ -38,10 +38,7 @@ class Tag(db.Model):
     player = relationship("Player", backref=backref('tags', order_by=id))
 
     def __repr__(self):
-        return "Tag(tag='{}', player_id={}".format(
-            self.tag,
-            self.player_id,
-        )
+        return "Tag(tag='{tag.tag}', player_id={tag.player_id}".format(tag=self)
 
     def __str__(self):
         return "{tag.player.name}: {tag.tag}".format(tag=self)
@@ -66,11 +63,7 @@ class Game(db.Model):
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defense_games', order_by=id))
 
     def __repr__(self):
-        return "Game(challenger='{}', defender='{}', date='{}'".format(
-            self.challenger.name,
-            self.defender.name,
-            self.date,
-        )
+        return "Game(challenger='{game.challenger.name}', defender='{game.defender.name}', date='{game.date}'".format(game=self)
 
     def __str__(self):
         return "{game.challenger.name}-{game.defender.name} (game.date)".format(game=self)
@@ -87,10 +80,7 @@ class Shout(db.Model):
     player = relationship("Player", backref=backref('shouts', order_by=id))
 
     def __repr__(self):
-        return "Shout(player_id={}, shout='{}')".format(
-            self.player_id,
-            self.shout
-        )
+        return "Shout(player_id={shout.player_id}, shout='{shout.shout}')".format(shout=self)
 
     def __str__(self):
         return "{shout.player.name}: {shout.shout}".format(shout=self)
@@ -111,11 +101,7 @@ class Challenge(db.Model):
     game = relationship("Game", backref=backref('challenge', order_by=id))
 
     def __repr__(self):
-        return "Challenge(challenger_id={}, defender_id={}, active={})".format(
-            self.challenger_id,
-            self.defender_id,
-            self.active
-        )
+        return "Challenge(challenger_id={challenge.challenger_id}, defender_id={challenge.defender_id}, active={self.active})".format(challenge=self)
 
     def __str__(self):
         return "{challenge.challenger.name}-{challenge.defender.name} {challenge.active}".format(challenge=self)
