@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Sequence
-from sqlalchemy import Boolean, Integer, String, Date, DateTime, LargeBinary
+from sqlalchemy import Boolean, Integer, String, Date, DateTime, LargeBinary, Text
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
 
@@ -54,7 +54,7 @@ class Game(db.Model):
     score_defender_2 = Column(Integer, nullable=False)
     score_challenger_3 = Column(Integer, nullable=True)
     score_defender_3 = Column(Integer, nullable=True)
-    game_comment = Column(String(60), nullable=True)
+    game_comment = Column(Text, nullable=True)
 
     challenger = relationship("Player", foreign_keys=[challenger_id], backref=backref('challenge_games', order_by=id))
     defender = relationship("Player", foreign_keys=[defender_id], backref=backref('defense_games', order_by=id))
@@ -71,7 +71,7 @@ class Shout(db.Model):
 
     __tablename__ = 'shouts'
     id = Column(Integer, Sequence('shout_id_seq'), primary_key=True)
-    shout = Column(String(128), nullable=False)
+    shout = Column(Text, nullable=False)
     player_id = Column(Integer, ForeignKey('players.id'), nullable=True)
     date = Column(DateTime, nullable=False, default=func.now())
 
