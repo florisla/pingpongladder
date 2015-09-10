@@ -307,7 +307,7 @@ def add_game():
     challenger_lost = player2_won([scores[0][0], scores[1][0], scores[2][0]], [scores[0][1], scores[1][1], scores[2][1]]);
     if challenger_lost:
         winner = game.defender
-        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {score[0][0]}-{score[0][1]} {score[1][0]}-{score[1][1]} {score[2][0]}{dash}{score[2]1[]}{comment}'
+        shout_message = '<b>{player1}</b> could not win from {nick} <b>{player2}</b> {score[0][0]}-{score[0][1]} {score[1][0]}-{score[1][1]} {score[2][0]}{dash}{score[2][1]}{comment}'
     else:
         winner = game.challenger
         shout_message = '{nick}<b>{player1}</b> beat <b>{player2}</b> {score[0][0]}-{score[0][1]} {score[1][0]}-{score[1][1]} {score[2][0]}{dash}{score[2][1]}{comment}'
