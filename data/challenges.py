@@ -43,15 +43,3 @@ def may_challenge(player_name, cool_down_time_h):
         .filter(Game.date > datetime.datetime.now() - datetime.timedelta(hours=cool_down_time_h)) \
         .all()
     return not any(recently_played_challenges)
-
-
-if __name__ == '__main__':
-    #add_challenge('Floris', 'Lou')
-    #from data.database import Game
-    #game = db.session.query(Game).filter(Game.id == 1).one()
-    #link_challenge_to_game(game)
-    #add_challenge('Lou', 'Floris')
-    #deactivate_challenges('Floris')
-    #print(get_challenges())
-    pass
-

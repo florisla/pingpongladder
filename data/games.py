@@ -21,9 +21,3 @@ def save_game(challenger, defender, scores, comment):
 
 def get_games():
     return db.session.query(Game).order_by(Game.date.asc()).all()
-
-
-if __name__ == '__main__':
-    save_game('Floris', 'Lou', ((11,7), (11,9)), 'good game')
-    #print(get_games())
-    pass

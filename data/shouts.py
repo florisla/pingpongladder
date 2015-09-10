@@ -25,12 +25,3 @@ def update_shout(shout_id, shout_message):
 def delete_shout(shout_id):
     db.session.query(Shout).filter(Shout.id == shout_id).delete()
     db.session.commit()
-
-
-if __name__ == '__main__':
-    #save_shout('Floris', 'test shout')
-    #update_shout(2, 'test shout2')
-    #delete_shout(2)
-    #print(get_shouts())
-    pass
-
