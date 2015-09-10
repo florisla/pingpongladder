@@ -1,5 +1,7 @@
 
-from data.datamodel import Challenge, Player
+import datetime
+
+from data.datamodel import Challenge, Player, Game
 from sqlalchemy.orm.exc import NoResultFound
 from data.database import db
 
@@ -31,6 +33,16 @@ def link_challenge_to_game(game):
     challenge.game_id = game.id
     challenge.active = False
     db.session.commit()
+
+def may_challenge(player_name, cool_down_time_h):
+    player = db.session.query(Player).filter(Player.name == player_name).one()
+
+    recently_played_challenges = db.session \
+        .query(Game) \
+        .filter(Game.challenger == player) \
+        .filter(Game.date > datetime.datetime.now() - datetime.timedelta(hours=cool_down_time_h)) \
+        .all()
+    return not any(recently_played_challenges)
 
 
 if __name__ == '__main__':

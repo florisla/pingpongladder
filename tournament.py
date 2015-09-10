@@ -13,7 +13,7 @@ import data.admin
 
 from data.players import get_players, player_is_admin, set_player_absence, get_player_absence
 from data.shouts import get_shouts, save_shout
-from data.challenges import get_challenges, link_challenge_to_game, deactivate_challenges, add_challenge
+from data.challenges import get_challenges, link_challenge_to_game, deactivate_challenges, add_challenge, may_challenge
 from data.tags import add_tag
 from data.games import get_games, save_game
 
@@ -342,9 +342,13 @@ def add_challenge_page():
     if request.form['player2'] not in g.ranking:
         abort(401)
 
-    # do not log a challenge to anyone who is the source or target
-    # of another challenge
+    # deny 'serial' challenges (placed too quickly after last played challenge)
+    if not may_challenge(request.form['player1'], app.config['CHALLENGE_COOLDOWN_DURATION_H']):
+        flash("Serial challenging is not allowed.  You are in a cool-down period after your last challenge.".format(**request.form), 'error')
+        save_shout(None, "The serial-challenge detection system blocked an attempt by <b>{player}</b>. Nice try though.".format(player=request.form['player1']))
+        return redirect(url_for('show_challenges'))
 
+    # deny challenges to anyone who is already in a challenge
     if any(chal for chal in g.challenges if chal.challenger.name == request.form['player1']):
         flash("You already have an open challenge.", 'error')
         return redirect(url_for('show_challenges'))
