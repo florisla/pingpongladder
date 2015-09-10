@@ -24,6 +24,9 @@ class Player(db.Model):
             self.name, self.full_name
         )
 
+    def __str__(self):
+        return self.name
+
 
 class Tag(db.Model):
 
@@ -39,6 +42,9 @@ class Tag(db.Model):
             self.tag,
             self.player_id,
         )
+
+    def __str__(self):
+        return "{tag.player.name}: {tag.tag}".format(tag=self)
 
 
 class Game(db.Model):
@@ -66,6 +72,9 @@ class Game(db.Model):
             self.date,
         )
 
+    def __str__(self):
+        return "{game.challenger.name}-{game.defender.name} (game.date)".format(game=self)
+
 
 class Shout(db.Model):
 
@@ -82,6 +91,9 @@ class Shout(db.Model):
             self.player_id,
             self.shout
         )
+
+    def __str__(self):
+        return "{shout.player.name}: {shout.shout}".format(shout=self)
 
 
 class Challenge(db.Model):
@@ -105,4 +117,5 @@ class Challenge(db.Model):
             self.active
         )
 
-
+    def __str__(self):
+        return "{challenge.challenger.name}-{challenge.defender.name} {challenge.active}".format(challenge=self)
