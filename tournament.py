@@ -298,6 +298,7 @@ def add_game():
         request.form['player2'],
         scores,
         comment,
+        date=datetime.datetime.now() - datetime.timedelta(hours=app.config.get('GAME_DATE_TIME_OFFSET_H', 0))
     )
     flash("Game result was saved")
 

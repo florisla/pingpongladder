@@ -2,7 +2,7 @@
 from data.datamodel import Game, Player
 from data.database import db
 
-def save_game(challenger, defender, scores, comment):
+def save_game(challenger, defender, scores, comment, date):
     game = Game(
         challenger=db.session.query(Player).filter(Player.name==challenger).one(),
         defender=db.session.query(Player).filter(Player.name==defender).one(),
@@ -13,6 +13,7 @@ def save_game(challenger, defender, scores, comment):
         score_challenger_3 = scores[2][0] if len(scores) == 3 else None,
         score_defender_3 = scores[2][1] if len(scores) == 3 else None,
         game_comment=comment,
+        date=date
     )
     db.session.add(game)
     db.session.commit()
