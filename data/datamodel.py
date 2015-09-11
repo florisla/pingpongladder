@@ -101,7 +101,7 @@ class Challenge(db.Model):
     game = relationship("Game", backref=backref('challenge', order_by=id))
 
     def __repr__(self):
-        return "Challenge(challenger_id={challenge.challenger_id}, defender_id={challenge.defender_id}, active={self.active})".format(challenge=self)
+        return "Challenge(challenger_id={challenge.challenger_id}, defender_id={challenge.defender_id}, active={challenge.active})".format(challenge=self)
 
     def __str__(self):
         return "{challenge.challenger.name}-{challenge.defender.name} {challenge.active}".format(challenge=self)
