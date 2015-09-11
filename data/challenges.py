@@ -1,8 +1,11 @@
 
-import datetime
+from datetime import datetime, timedelta
+import random
+
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql.expression import func
 
 from data.datamodel import Challenge, Player, Game
-from sqlalchemy.orm.exc import NoResultFound
 from data.database import db
 
 def add_challenge(challenger, defender):
@@ -34,12 +37,24 @@ def link_challenge_to_game(game):
     challenge.active = False
     db.session.commit()
 
-def may_challenge(player_name, cool_down_time_h):
+def may_challenge(player_name, cool_down_time_range_m, cool_down_random_salt):
     player = db.session.query(Player).filter(Player.name == player_name).one()
 
-    recently_played_challenges = db.session \
-        .query(Game) \
-        .filter(Game.challenger == player) \
-        .filter(Game.date > datetime.datetime.now() - datetime.timedelta(hours=cool_down_time_h)) \
-        .all()
-    return not any(recently_played_challenges)
+    most_recent_challenge_game_date = db.session.\
+        query(func.max(Game.date)).\
+        filter(Game.challenger == player).\
+        first()[0]
+
+    if not most_recent_challenge_game_date:
+        return True
+
+    # find for this game date, the 'cooldown' time in minutes
+    # this is random out of a range, but a random value which is unique and constant
+    # per game date/time (seeded)
+    random.seed(cool_down_random_salt + str(most_recent_challenge_game_date))
+    cooldown_period_m = random.randint(*cool_down_time_range_m)
+
+    # player may challenge again if more minutes have passed
+    # than the cooldown period requires
+    lapsed_minits = (datetime.now() - most_recent_challenge_game_date).total_seconds() / 60
+    return lapsed_minits > cooldown_period_m
