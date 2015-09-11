@@ -66,7 +66,7 @@ class Game(db.Model):
         return "Game(challenger='{game.challenger.name}', defender='{game.defender.name}', date='{game.date}'".format(game=self)
 
     def __str__(self):
-        return "{game.challenger.name}-{game.defender.name} (game.date)".format(game=self)
+        return "{game.challenger.name}-{game.defender.name} ({game.date:%Y-%m-%d})".format(game=self)
 
 
 class Shout(db.Model):
@@ -83,7 +83,10 @@ class Shout(db.Model):
         return "Shout(player_id={shout.player_id}, shout='{shout.shout}')".format(shout=self)
 
     def __str__(self):
-        return "{shout.player.name}: {shout.shout}".format(shout=self)
+        return "{player}: {shout}".format(
+            player=self.player.name if self.player else 'system',
+            shout=self.shout[0:50],
+        )
 
 
 class Challenge(db.Model):
