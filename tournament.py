@@ -1,5 +1,4 @@
 
-import sqlite3
 import datetime
 from flask import request, session, g, redirect, url_for, abort, \
                   render_template, flash, json
@@ -221,10 +220,10 @@ def show_stats():
 
 @app.route('/shoutbox')
 def shoutbox():
-    get_shouts(2000)
+    all_shouts = get_shouts(2000)
     return render_template(
         'show_shoutbox.html',
-        shouts = g.shouts,
+        shouts=all_shouts,
     )
 
 @app.route('/player/absence/save', methods=['POST'])
