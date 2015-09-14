@@ -8,10 +8,11 @@ from sqlalchemy.sql.expression import func
 from data.datamodel import Challenge, Player, Game
 from data.database import db
 
-def add_challenge(challenger, defender):
+def add_challenge(challenger, defender, active=True):
     db.session.add(Challenge(
         challenger=db.session.query(Player).filter(Player.name == challenger).one(),
         defender=db.session.query(Player).filter(Player.name == defender).one(),
+        active=active,
     ))
     db.session.commit()
 

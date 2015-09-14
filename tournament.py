@@ -346,6 +346,7 @@ def add_challenge_page():
     if not may_challenge(request.form['player1'], app.config['CHALLENGE_COOLDOWN_DURATION_M'], app.config['COOLDOWN_RANDOMIZE_SALT']):
         flash("Serial challenging is not allowed.  You are in a cool-down period after your last challenge.".format(**request.form), 'error')
         save_shout(None, "The serial-challenge detection system blocked an attempt by <b>{player}</b>. Nice try though.".format(player=request.form['player1']))
+        add_challenge(request.form['player1'], request.form['player2'], active=False)
         return redirect(url_for('show_challenges'))
 
     # deny challenges to anyone who is already in a challenge
