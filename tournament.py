@@ -267,7 +267,7 @@ def add_tag_to_player():
 
     save_shout(None, "Someone saw it fit to attribute <b>{player}</b> with the tag <span class=\"tag\">{tag_lowercase}</span>.".format(
         tag_lowercase=request.form['tag'].lower(),
-        **request.form
+        player=request.form['player'],
     ))
 
     return redirect(url_for('show_players'))
