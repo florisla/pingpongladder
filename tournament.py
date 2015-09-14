@@ -80,7 +80,7 @@ def calculate_ranking():
             ],
             winner=game.defender.name if challenger_lost else game.challenger.name,
             index=len(g.positions[game.challenger.name]),
-            date=str(game.date),
+            date=game.date.strftime("%Y-%m-%d %H:%M:%S"),
         ))
         game_index = len(g.game_details)
 
