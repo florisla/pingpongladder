@@ -8,6 +8,22 @@ CHALLENGE_COOLDOWN_DURATION_M = (120+120, 120+180)
 COOLDOWN_RANDOMIZE_SALT = "shoutnotbeguessed"
 GAME_DATE_TIME_OFFSET_H = 2
 
+ALLOWED_TAGS = dict(
+    tag=[],
+    shout_message=['a', 'b', 'em', 'i', 'div', 'strong', 'img', 'h2', 'br'],
+    game_comment=['b', 'em', 'i', 'strong'],
+)
+
+ALLOWED_ATTRS = dict(
+    tag={},
+    shout_message={
+        '*': ['class'],
+        'a': ['href', 'rel'],
+        'img': ['src', 'alt'],
+    },
+    game_comment={},
+)
+
 # example password is not shared; generate new salt and hash like this:
 #   import os
 #   import hashlib

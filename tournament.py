@@ -6,6 +6,8 @@ from flask import request, session, g, redirect, url_for, abort, \
 import hashlib
 import random
 
+import bleach
+
 from app import app
 from data.database import db
 import data.admin
@@ -261,11 +263,17 @@ def add_tag_to_player():
         flash('Please enter a valid tag', 'error')
         return redirect(url_for('show_players'))
 
-    add_tag(request.form['player'], request.form['tag'].lower())
+    tag = bleach.clean(
+        request.form['tag'].lower(),
+        tags=app.config['ALLOWED_TAGS']['tag'],
+        attributes=app.config['ALLOWED_ATTRS']['tag'],
+    )
+
+    add_tag(request.form['player'], tag)
     flash("Tag was saved")
 
-    save_shout(None, "Someone saw it fit to attribute <b>{player}</b> with the tag <span class=\"tag\">{tag_lowercase}</span>.".format(
-        tag_lowercase=request.form['tag'].lower(),
+    save_shout(None, "Someone saw it fit to attribute <b>{player}</b> with the tag <span class=\"tag\">{tag}</span>.".format(
+        tag=tag,
         player=request.form['player'],
     ))
 
@@ -291,7 +299,12 @@ def add_game():
             if len(score) > 0 and not score.isnumeric():
                 abort(401)
 
-    comment = request.form.get('comment', '')
+    comment = bleach.clean(
+        request.form.get('comment', ''),
+        tags=app.config['ALLOWED_TAGS']['game_comment'],
+        attributes=app.config['ALLOWED_ATTRS']['game_comment'],
+    )
+
     game = save_game(
         request.form['player1'],
         request.form['player2'],
@@ -385,7 +398,13 @@ def add_shout():
     if not session.get('logged_in'):
         abort(401)
 
-    save_shout(session['username'], request.form['shout'])
+    shout = bleach.clean(
+        request.form['shout'],
+        tags=app.config['ALLOWED_TAGS']['shout_message'],
+        attributes=app.config['ALLOWED_ATTRS']['shout_message'],
+    )
+
+    save_shout(session['username'], shout)
     flash('Your shout is heard.')
     return redirect(url_for('show_home'))
 
