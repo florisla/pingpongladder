@@ -2,7 +2,8 @@ Pingpong Ladder
 ===============
 Pingpong Ladder is a small web app to keep track of tabletennis scores in a 'ladder competition'.
 
-It is built on Python, Flask, sqlite and d3.js.
+It makes use of Python, Flask, SQLAlchemy, Flask-Admin, and d3.js.  By default,
+data is stored in a simple sqlite database.
 
 Features
 ========
@@ -18,20 +19,14 @@ Limitations
 ===========
 * Players can't register themselves, they are entered manually in the database.
 * All users share a single password -- Pingpong Ladder trusts its users.
-* There is no distinction between a 'user' of the site and a tournament 'participant'
+* There is no distinction between a 'user' of the site and a tournament 'participant'.
+* The code and visualisations are not tested for big numbers (hundreds of players, thousands of
+  matches, hundreds of days). So optimizations may be required if that's your use case.
 
 Installation
 ============
 * Install Flask.
-* Create the sqlite database using schema.sql .
-* Enter some 'players', of which one should receive admin=1 .
+* Create an empty sqlite database.
 * Rename example.configuration.py to configuration.py .
 * Edit configuration.py and update all settings.
-
-Warning
-=======
-This application, while functional, is not finished yet.
-
-Features and documentation are lacking, but above all - it is INSECURE.
-Only use on protected intranets with people you trust.
-
+* Run tools/createdb.py with ADD_ADMIN=True.
