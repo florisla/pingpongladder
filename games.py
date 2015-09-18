@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 import random
 
 from flask import render_template, json, g, session, abort, request, flash, redirect, url_for
@@ -91,9 +91,7 @@ def add_game():
         request.form['player2'],
         scores,
         comment,
-        date=datetime.datetime.now() - datetime.timedelta(
-            hours=app.config.get('GAME_DATE_TIME_OFFSET_H', 0)
-        )
+        date=datetime.utcnow()
     )
     flash("Game result was saved")
 

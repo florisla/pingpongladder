@@ -4,9 +4,10 @@ DEBUG = True
 SECRET_KEY = 'KnofBcdnLGjK5eY5'
 PASSWORD_SALT = b'\xe7\xca\xf1u\r\n\xdb\xfcx\x16`0\xce\x02N\xf1\x97\xeb\xbd\xcf'
 PASSWORD_HASH = b'\x1c\xc10\x82\x06\xfb\x1aW\xe8\xbf/\xbb\x0eR\x0e\xbc\xbe\x1a\x91\xbdG\xf2\xa6\xfb\xeduw\x01-Z8+\xd6\x08:\xc8\xa3\x1c\xe1\x1c\xfc\xcfRJ\xf2eTJ\xbbL\xe8(\xc4.\x8c\x99\xdfj\x01\x92\x80\x1f59'
-CHALLENGE_COOLDOWN_DURATION_M = (120+120, 120+180)
+CHALLENGE_COOLDOWN_DURATION_M = (120, 180)
 COOLDOWN_RANDOMIZE_SALT = "shoutnotbeguessed"
-GAME_DATE_TIME_OFFSET_H = 2
+# pick one from the tz database: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+WEBSITE_TIMEZONE = 'Etc/UTC'
 
 ALLOWED_TAGS = dict(
     tag=[],

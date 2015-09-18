@@ -2,6 +2,7 @@
 import hashlib
 
 from flask import render_template, g, session, request, flash, redirect, url_for
+import pytz
 
 from application import app
 from data.players import get_players
@@ -15,6 +16,8 @@ def before_request():
     if '/static/' in request.url:
         # no need to do dynamic things on non-dynamic resources
         return
+
+    g.website_timezone = pytz.timezone(app.config['WEBSITE_TIMEZONE'])
 
     # FIXME: do the sorting according to rank already in get_players!
     g.players = get_players()

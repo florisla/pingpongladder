@@ -67,7 +67,7 @@
     {% if game.score_challenger_3 or game.score_defender_3 %}
       , <span class='score'>{{ game.score_challenger_3 }}-{{ game.score_defender_3 }}</span>
     {% endif %}
-    ({{ game['date']  }})
+    ({{ game['local_date_string']  }}h)
   {% endfor %}
   </ul>
 

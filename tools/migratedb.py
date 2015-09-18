@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy import text
@@ -20,7 +20,7 @@ def migrate_players(old_db, new_session):
         player = Player(name=name, full_name=full_name, initial_rank=initial_rank)
         absence = absence.strip()
         if absence != '' and absence != '?':
-            player.absence = datetime.datetime.strptime(absence, '%Y-%m-%d')
+            player.absence = datetime.strptime(absence, '%Y-%m-%d')
         player.rank_drop_at_game = rank_drop_at_game
         player.admin = admin
         print(player)
@@ -28,7 +28,7 @@ def migrate_players(old_db, new_session):
 
 def migrate_challenges(old_db, new_session):
     for player1,player2,date in old_db.execute(text('SELECT player1,player2,date FROM challenges')).fetchall():
-        challenge_date=datetime.datetime.strptime(date, '%Y-%m-%d %H:%M')
+        challenge_date=datetime.strptime(date, '%Y-%m-%d %H:%M')
         challenge = Challenge(
             challenger=new_session.query(Player).filter(Player.name == player1).one(),
             defender=new_session.query(Player).filter(Player.name == player2).one(),
@@ -48,7 +48,7 @@ def migrate_games(old_db, new_session):
             score_defender_2=s22,
             score_challenger_3=s13,
             score_defender_3=s23,
-            date=datetime.datetime.strptime(date, '%Y-%m-%d %H:%M'),
+            date=datetime.strptime(date, '%Y-%m-%d %H:%M'),
             game_comment=comment,
         )
         print(game)
@@ -63,7 +63,7 @@ def migrate_shouts(old_db, new_session):
         shout = Shout(
             shout=message,
             player=player,
-            date=datetime.datetime.strptime(date, '%Y-%m-%d %H:%M'),
+            date=datetime.strptime(date, '%Y-%m-%d %H:%M'),
         )
         print(shout)
         new_session.add(shout)

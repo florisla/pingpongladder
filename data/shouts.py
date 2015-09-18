@@ -1,4 +1,6 @@
 
+from datetime import datetime
+
 from data.datamodel import Player, Shout
 from data.database import db
 
@@ -13,6 +15,7 @@ def save_shout(author, shout_message):
     db.session.add(Shout(
         shout=shout_message,
         player=player,
+        date=datetime.utcnow()
     ))
     db.session.commit()
 

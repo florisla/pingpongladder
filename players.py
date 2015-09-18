@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 
 from flask import render_template, session, request, abort, redirect, url_for, g, json, flash
 import bleach
@@ -42,7 +42,7 @@ def save_absence():
     else:
         # try to parse the date
         try:
-            absence_date = datetime.datetime.strptime(
+            absence_date = datetime.strptime(
                 request.form['absence'].strip(),
                 '%Y-%m-%d'
             )

@@ -1,5 +1,6 @@
 
 from flask import g, render_template, json
+import pytz
 
 from data.games import get_games
 from application import app
@@ -84,6 +85,7 @@ def calculate_ranking():
             if swap_ranking(game.challenger.name, game.defender.name):
                 g.swaps.append((game.challenger.name, game.defender.name))
 
+        # convert
         g.game_details.append(dict(
             challenger=dict(
                 name=game.challenger.name, rank=abs(g.positions[game.challenger.name][-1])
@@ -98,7 +100,7 @@ def calculate_ranking():
             ],
             winner=game.defender.name if challenger_lost else game.challenger.name,
             index=len(g.positions[game.challenger.name]),
-            date=game.date.strftime("%Y-%m-%d %H:%M:%S"),
+            date=game.local_date.strftime("%Y-%m-%d %H:%M:%S"),
         ))
         game_index = len(g.game_details)
 
