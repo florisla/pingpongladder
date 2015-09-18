@@ -19,14 +19,8 @@ def before_request():
 
     g.website_timezone = pytz.timezone(app.config['WEBSITE_TIMEZONE'])
 
-    # FIXME: do the sorting according to rank already in get_players!
     g.players = get_players()
-    g.ranking = [
-        player.name for player in sorted(
-            g.players,
-            key=lambda player: player.initial_rank
-        )
-    ]
+    g.ranking = [player.name for player in g.players]
     g.original_ranking = g.ranking[:]
     g.shouts = get_shouts()
     g.challenges = get_challenges()

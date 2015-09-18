@@ -3,7 +3,10 @@ from data.datamodel import Player
 from data.database import db
 
 def get_players():
-    return db.session.query(Player).all()
+    """
+    Return all players, sorted by their initial rank (rank 1 first).
+    """
+    return db.session.query(Player).order_by(Player.initial_rank.asc()).all()
 
 def player_is_admin(player_name):
     try:
