@@ -17,15 +17,20 @@
   <a href="/players">Players</a>
   <a href="/rules">Rules</a>
   <a href="/shoutbox">Shoutbox</a>
+  {% if session.logged_in and session.administrator %}
+    <a href="/admin">Admin</a>
+  {% endif %}
   {% if not session.logged_in %}
     <a href="{{ url_for ('login') }}">Login</a>
   {% else %}
     <a href="{{ url_for('logout') }}">Logout</a>
   {% endif %}
   </div>
+
   {% for category, message in get_flashed_messages(with_categories=true) %}
       <div class="{{ category }}flash">{{ message }}</div>
   {% endfor %}
+
   {% block body %}{% endblock %}
 
 <hr style="clear:all" />
