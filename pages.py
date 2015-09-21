@@ -5,7 +5,7 @@ from flask import render_template, g, session, request, flash, redirect, url_for
 import pytz
 
 from application import app
-from data.players import get_players
+from data.players import get_players, player_is_admin
 from data.shouts import get_shouts
 from data.challenges import get_challenges
 from ranking import calculate_ranking
@@ -76,6 +76,7 @@ def login():
         else:
             session['logged_in'] = True
             session['username'] = request.form['username']
+            session['administrator'] = player_is_admin(session['username'])
             flash("You were logged in as '{username}'".format(**session))
             return redirect(url_for('show_home'))
     return render_template('login.html', error=error, users=g.ranking)

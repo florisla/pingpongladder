@@ -4,6 +4,7 @@ from flask import render_template, g, session, abort, request, redirect, url_for
 from application import app
 from data.challenges import may_challenge, add_challenge, deactivate_challenges
 from data.shouts import save_shout
+from data.players import player_is_admin
 
 
 @app.route('/challenges')

@@ -6,7 +6,7 @@
     <h2>Enter challenge</h2>
 
     <form action="{{ url_for('add_challenge_page') }}" method=post class=add-challenge>
-        {% if session.username == 'Floris' %}
+        {% if session.administrator %}
             Challenger: <select name="player1"><option name="none" selected> </option>
                 {% for player in players %}
                     <option name="{{ player }}">{{ player }}</option>
