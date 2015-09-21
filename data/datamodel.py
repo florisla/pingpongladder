@@ -108,3 +108,19 @@ class Challenge(db.Model):
 
     def __str__(self):
         return "{challenge.challenger.name}-{challenge.defender.name} {challenge.active}".format(challenge=self)
+
+
+class TableReservation(db.Model):
+
+    __tablename__ = 'reservations'
+    id = Column(Integer, Sequence('reservation_id_seq'), primary_key=True)
+    reserver_id = Column(Integer, ForeignKey('players.id'), nullable=False)
+    date = Column(DateTime, nullable=False, default=func.now())
+
+    reserver = relationship("Player", foreign_keys=[reserver_id], backref=backref('table_reservations', order_by=id))
+
+    def __repr__(self):
+        return "TableReservation(reserver_id={reservation.reserver_id}, active={reservation.active})".format(reservation=self)
+
+    def __str__(self):
+        return "{reservation.reserver.name} {reservation.active} {reservation.date:%Y-%m-%d %H:%M}".format(reservation=self)

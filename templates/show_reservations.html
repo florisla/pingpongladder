@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block title %}Table reservations{% endblock %}
+{% block body %}
+
+<h2>Table reservation</h2>
+
+<h3>Reservations in the last hour</h3>
+<ul>
+{% for reservation in reservations %}
+  <li>{{ reservation.reserver.name }} - {{ reservation.minits_ago }} minits ago</li>
+{% endfor %}
+</ul>
+
+{% if session.logged_in %}
+<form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation>
+  <input type=submit value='Save reservation'>
+</form>
+{% endif %}
+
+{% endblock %}

@@ -1,7 +1,7 @@
 
 from application import app
 from data.database import db
-from data.datamodel import Player, Tag, Challenge, Game, Shout
+from data.datamodel import Player, Tag, Challenge, Game, Shout, TableReservation
 
 from flask import redirect, request, url_for, session
 
@@ -38,3 +38,4 @@ admin.add_view(SafeModelView(Tag, db.session))
 admin.add_view(SafeModelView(Challenge, db.session))
 admin.add_view(SafeModelView(Game, db.session))
 admin.add_view(SafeModelView(Shout, db.session))
+admin.add_view(SafeModelView(TableReservation, db.session))

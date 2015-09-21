@@ -9,6 +9,7 @@ import ranking
 import challenges
 import players
 import games
+import table
 
 
 if __name__ == '__main__':
