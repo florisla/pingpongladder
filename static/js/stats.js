@@ -555,7 +555,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
     meta.append('text')
         .attr('id', 'label33perc')
         .attr('x', x(most_lost-3))
-        .attr('y', y(9))
+        .attr('y', y(14))
         .attr('fill', 'black')
         .attr('opacity', '0.3')
         .text('33%')
