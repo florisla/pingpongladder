@@ -209,6 +209,10 @@ function graph_lost_won_per_day(dates) {
         .domain([0, most_games])
         .range([0, height/2 - margin_vertical]);
 
+    percentage_y = d3.scale.linear()
+        .domain([0, 100])
+        .range([height-margin_vertical, margin_vertical])
+
     y_bottomup = d3.scale.linear()
         .domain([-most_games, most_games])
         .range([height-margin_vertical, margin_vertical]);
@@ -218,6 +222,11 @@ function graph_lost_won_per_day(dates) {
         .orient('left')
         .tickValues([-15, -10, -5, 0, 5, 10, 15])
 
+    percentage_axis = d3.svg.axis()
+        .scale(percentage_y)
+        .orient('right')
+        .tickValues([0,25,50,75,100])
+
     svg = d3.select('.challengerate')
         .attr('width', width)
         .attr('height', height)
@@ -226,6 +235,11 @@ function graph_lost_won_per_day(dates) {
         .attr('class', 'axis')
         .attr('transform', 'translate(30,0)')
         .call(y_axis);
+
+    percentage_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(465,0)')
+        .call(percentage_axis);
 
     svg.selectAll('.wonrect')
         .data(dates)
@@ -247,18 +261,16 @@ function graph_lost_won_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-/*
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', 18)
-        .text(function(d) { return Math.round(100*d.value.won/(d.value.won+d.value.lost)) + '%'; } )
-        .attr('fill', 'black')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '0.7em');
-*/
+        .append('rect')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { return percentage_y(100*d.value.won/(d.value.won+d.value.lost)); } )
+        .attr('width', bar_width)
+        .attr('height', 4)
+        .attr('opacity', 0.7)
+        .attr('fill', 'black');
 }
 
 function graph_games_per_player(games_per_player) {
@@ -646,6 +658,10 @@ function graph_three_sets_per_day(dates) {
         .domain([0, most_any])
         .range([0, height/2 - margin_vertical]);
 
+    percentage_y = d3.scale.linear()
+        .domain([0, 100])
+        .range([height-margin_vertical, margin_vertical])
+
     svg = d3.select('.threesetrate')
         .attr('width', width)
         .attr('height', height)
@@ -657,6 +673,11 @@ function graph_three_sets_per_day(dates) {
     y_topdown = d3.scale.linear()
         .domain([0, most_any])
         .range([height/2, height-margin_vertical]);
+
+    percentage_axis = d3.svg.axis()
+        .scale(percentage_y)
+        .orient('right')
+        .tickValues([0,25,50,75,100])
 
     y_axis = d3.svg.axis()
         .scale(y_bottomup)
@@ -678,6 +699,11 @@ function graph_three_sets_per_day(dates) {
         .attr('transform', 'translate(30,0)')
         .call(y_axis2);
 
+    percentage_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(465, 0)')
+        .call(percentage_axis)
+
     svg.selectAll('.twoset')
         .data(dates)
         .enter()
@@ -698,18 +724,16 @@ function graph_three_sets_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-/*
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', 18)
-        .text(function(d) { return Math.round(100*d.value[0]/(d.value[0] + d.value[1])) + '%'; } )
-        .attr('fill', 'black')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '0.7em');
-*/
+        .append('rect')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { console.log(d.value[0]/(d.value[0] + d.value[1])); return percentage_y(100 * d.value[0] / (d.value[0] + d.value[1])); } )
+        .attr('width', bar_width)
+        .attr('height', 4)
+        .attr('opacity', 0.7)
+        .attr('fill', 'black');
 }
 
 function graph_score_counts(scores) {
