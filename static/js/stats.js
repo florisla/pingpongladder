@@ -149,7 +149,7 @@ function graph_match_rate(match_rate) {
     var barSpacing = 0.15 * width / match_rate.length;
     var marginTop = 20;
 
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var total_bar_width = (width - margin_horizontal*2) / match_rate.length;
     var bar_width = total_bar_width * 0.8;
     var bar_spacing = total_bar_width * 0.2;
@@ -158,9 +158,24 @@ function graph_match_rate(match_rate) {
         .domain([0, d3.max(match_rate, function(datum) { return datum.value; })]).rangeRound([0, height])
         .range([0, height-marginTop]);
 
+    var y_scale = d3.scale.linear()
+        .domain([0, d3.max(match_rate, function(datum) { return datum.value; })]).rangeRound([0, height])
+        .range([height, marginTop]);
+
     var dateBar = d3.select(".datechart")
         .attr("width", width)
         .attr("height", height);
+
+    y_axis = d3.svg.axis()
+        .scale(y_scale)
+        .orient('left')
+        .tickValues([5,10,15,20]);
+
+    y_axis_group = dateBar.append('g')
+        .attr('id', 'matchrateaxis')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
 
     dateBar.selectAll('.matchcountbar')
         .data(match_rate)
@@ -171,16 +186,6 @@ function graph_match_rate(match_rate) {
         .attr('width', barWidth)
         .attr('height', function(d) { return y(d.value); } )
         .attr('fill', 'steelblue')
-
-    dateBar.selectAll(".matchcountlabel")
-        .data(match_rate)
-        .enter()
-        .append("svg:text")
-        .attr("x", function(d, i) { return -5 + margin_horizontal + total_bar_width/2 + total_bar_width * i; })
-        .attr("y", function(d) { return 20 + height - y(d.value); })
-        .attr("text-anchor", "middle")
-        .text(function(d) { if (d.value <= 1) {return '';} return d.value;} )
-        .attr("fill", "white");
 }
 
 function graph_lost_won_per_day(dates) {
@@ -189,7 +194,7 @@ function graph_lost_won_per_day(dates) {
 
     var width = 500;
     var height = 300;
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var margin_vertical = 25;
 
     var total_bar_width = (width - margin_horizontal*2) / dates.length;
@@ -204,9 +209,37 @@ function graph_lost_won_per_day(dates) {
         .domain([0, most_games])
         .range([0, height/2 - margin_vertical]);
 
+    percentage_y = d3.scale.linear()
+        .domain([0, 100])
+        .range([height-margin_vertical, margin_vertical])
+
+    y_bottomup = d3.scale.linear()
+        .domain([-most_games, most_games])
+        .range([height-margin_vertical, margin_vertical]);
+
+    y_axis = d3.svg.axis()
+        .scale(y_bottomup)
+        .orient('left')
+        .tickValues([-15, -10, -5, 0, 5, 10, 15])
+
+    percentage_axis = d3.svg.axis()
+        .scale(percentage_y)
+        .orient('right')
+        .tickValues([0,25,50,75,100])
+
     svg = d3.select('.challengerate')
         .attr('width', width)
         .attr('height', height)
+
+    y_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
+
+    percentage_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(465,0)')
+        .call(percentage_axis);
 
     svg.selectAll('.wonrect')
         .data(dates)
@@ -218,16 +251,6 @@ function graph_lost_won_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', function(d) { return margin_vertical + y(most_games) - y(d.value.won); } );
 
-    svg.selectAll('.wonnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return margin_vertical + 15 + y(most_games) - y(d.value.won); } )
-        .text(function(d) { if (d.value.lost <= 1) {return '';} return d.value.won; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
     svg.selectAll('.lostrect')
         .data(dates)
         .enter()
@@ -238,26 +261,16 @@ function graph_lost_won_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-    svg.selectAll('.lostnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return height/2 -2 + y(d.value.lost); } )
-        .text(function(d) { if (d.value.lost <= 1) {return '';} return d.value.lost; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', 18)
-        .text(function(d) { return Math.round(100*d.value.won/(d.value.won+d.value.lost)) + '%'; } )
-        .attr('fill', 'black')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '0.7em');
+        .append('rect')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { return percentage_y(100*d.value.won/(d.value.won+d.value.lost)); } )
+        .attr('width', bar_width)
+        .attr('height', 4)
+        .attr('opacity', 0.7)
+        .attr('fill', 'black');
 }
 
 function graph_games_per_player(games_per_player) {
@@ -482,11 +495,13 @@ function graph_lost_won_rate_per_player(games_per_player) {
 
     x_axis_group = svg.append('g')
         .attr('id', 'axes')
+        .attr('class', 'axis')
         .attr('transform', 'translate(30,0)')
         //.call(x_axis);
 
     y_axis_group = svg.append('g')
         .attr('id', 'axes')
+        .attr('class', 'axis')
         .attr('transform', 'translate(0,480)')
         //.call(y_axis);
 
@@ -540,7 +555,7 @@ function graph_lost_won_rate_per_player(games_per_player) {
     meta.append('text')
         .attr('id', 'label33perc')
         .attr('x', x(most_lost-3))
-        .attr('y', y(9))
+        .attr('y', y(14))
         .attr('fill', 'black')
         .attr('opacity', '0.3')
         .text('33%')
@@ -607,6 +622,7 @@ function graph_play_times(play_times) {
 
     var axis_group = svg.append("g")
         .attr('transform', 'translate(70,0)')
+        .attr('class', 'axis')
         .call(y_axis);
 
     svg.selectAll('time')
@@ -627,7 +643,7 @@ function graph_three_sets_per_day(dates) {
 
     var width = 500;
     var height = 300;
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var margin_vertical = 25;
 
     var total_bar_width = (width - margin_horizontal*2) / dates.length;
@@ -642,9 +658,51 @@ function graph_three_sets_per_day(dates) {
         .domain([0, most_any])
         .range([0, height/2 - margin_vertical]);
 
+    percentage_y = d3.scale.linear()
+        .domain([0, 100])
+        .range([height-margin_vertical, margin_vertical])
+
     svg = d3.select('.threesetrate')
         .attr('width', width)
         .attr('height', height)
+
+    y_bottomup = d3.scale.linear()
+        .domain([0, most_any])
+        .range([height/2, margin_vertical]);
+
+    y_topdown = d3.scale.linear()
+        .domain([0, most_any])
+        .range([height/2, height-margin_vertical]);
+
+    percentage_axis = d3.svg.axis()
+        .scale(percentage_y)
+        .orient('right')
+        .tickValues([0,25,50,75,100])
+
+    y_axis = d3.svg.axis()
+        .scale(y_bottomup)
+        .orient('left')
+        .tickValues([0, 5, 10, 15])
+
+    y_axis2 = d3.svg.axis()
+        .scale(y_topdown)
+        .orient('left')
+        .tickValues([0, 5, 10, 15])
+
+    y_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
+
+    y_axis_group2 = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis2);
+
+    percentage_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(465, 0)')
+        .call(percentage_axis)
 
     svg.selectAll('.twoset')
         .data(dates)
@@ -656,16 +714,6 @@ function graph_three_sets_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', function(d) { return margin_vertical + y(most_any) - y(d.value[0]); } );
 
-    svg.selectAll('.twosetnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return margin_vertical + 15 + y(most_any) - y(d.value[0]); } )
-        .text(function(d) { if (d.value[0] <= 1) {return '';} return d.value[0]; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
     svg.selectAll('.threeset')
         .data(dates)
         .enter()
@@ -676,27 +724,16 @@ function graph_three_sets_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-    svg.selectAll('.threesetnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return height/2 -2 + y(d.value[1]); } )
-        .text(function(d) { if (d.value[1] <= 1) {return '';} return d.value[1]; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
-
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', 18)
-        .text(function(d) { return Math.round(100*d.value[0]/(d.value[0] + d.value[1])) + '%'; } )
-        .attr('fill', 'black')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '0.7em');
+        .append('rect')
+        .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
+        .attr('y', function(d) { console.log(d.value[0]/(d.value[0] + d.value[1])); return percentage_y(100 * d.value[0] / (d.value[0] + d.value[1])); } )
+        .attr('width', bar_width)
+        .attr('height', 4)
+        .attr('opacity', 0.7)
+        .attr('fill', 'black');
 }
 
 function graph_score_counts(scores) {
