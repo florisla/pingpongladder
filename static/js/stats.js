@@ -194,7 +194,7 @@ function graph_lost_won_per_day(dates) {
 
     var width = 500;
     var height = 300;
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var margin_vertical = 25;
 
     var total_bar_width = (width - margin_horizontal*2) / dates.length;
@@ -209,9 +209,23 @@ function graph_lost_won_per_day(dates) {
         .domain([0, most_games])
         .range([0, height/2 - margin_vertical]);
 
+    y_bottomup = d3.scale.linear()
+        .domain([-most_games, most_games])
+        .range([height-margin_vertical, margin_vertical]);
+
+    y_axis = d3.svg.axis()
+        .scale(y_bottomup)
+        .orient('left')
+        .tickValues([-15, -10, -5, 0, 5, 10, 15])
+
     svg = d3.select('.challengerate')
         .attr('width', width)
         .attr('height', height)
+
+    y_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
 
     svg.selectAll('.wonrect')
         .data(dates)
@@ -223,16 +237,6 @@ function graph_lost_won_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', function(d) { return margin_vertical + y(most_games) - y(d.value.won); } );
 
-    svg.selectAll('.wonnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return margin_vertical + 15 + y(most_games) - y(d.value.won); } )
-        .text(function(d) { if (d.value.lost <= 1) {return '';} return d.value.won; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
     svg.selectAll('.lostrect')
         .data(dates)
         .enter()
@@ -243,16 +247,7 @@ function graph_lost_won_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-    svg.selectAll('.lostnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return height/2 -2 + y(d.value.lost); } )
-        .text(function(d) { if (d.value.lost <= 1) {return '';} return d.value.lost; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
+/*
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
@@ -263,6 +258,7 @@ function graph_lost_won_per_day(dates) {
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
         .attr('font-size', '0.7em');
+*/
 }
 
 function graph_games_per_player(games_per_player) {
@@ -487,11 +483,13 @@ function graph_lost_won_rate_per_player(games_per_player) {
 
     x_axis_group = svg.append('g')
         .attr('id', 'axes')
+        .attr('class', 'axis')
         .attr('transform', 'translate(30,0)')
         //.call(x_axis);
 
     y_axis_group = svg.append('g')
         .attr('id', 'axes')
+        .attr('class', 'axis')
         .attr('transform', 'translate(0,480)')
         //.call(y_axis);
 
@@ -612,6 +610,7 @@ function graph_play_times(play_times) {
 
     var axis_group = svg.append("g")
         .attr('transform', 'translate(70,0)')
+        .attr('class', 'axis')
         .call(y_axis);
 
     svg.selectAll('time')
@@ -632,7 +631,7 @@ function graph_three_sets_per_day(dates) {
 
     var width = 500;
     var height = 300;
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var margin_vertical = 25;
 
     var total_bar_width = (width - margin_horizontal*2) / dates.length;
@@ -651,6 +650,34 @@ function graph_three_sets_per_day(dates) {
         .attr('width', width)
         .attr('height', height)
 
+    y_bottomup = d3.scale.linear()
+        .domain([0, most_any])
+        .range([height/2, margin_vertical]);
+
+    y_topdown = d3.scale.linear()
+        .domain([0, most_any])
+        .range([height/2, height-margin_vertical]);
+
+    y_axis = d3.svg.axis()
+        .scale(y_bottomup)
+        .orient('left')
+        .tickValues([0, 5, 10, 15])
+
+    y_axis2 = d3.svg.axis()
+        .scale(y_topdown)
+        .orient('left')
+        .tickValues([0, 5, 10, 15])
+
+    y_axis_group = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
+
+    y_axis_group2 = svg.append('g')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis2);
+
     svg.selectAll('.twoset')
         .data(dates)
         .enter()
@@ -660,16 +687,6 @@ function graph_three_sets_per_day(dates) {
         .attr('fill', 'steelblue')
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', function(d) { return margin_vertical + y(most_any) - y(d.value[0]); } );
-
-    svg.selectAll('.twosetnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return margin_vertical + 15 + y(most_any) - y(d.value[0]); } )
-        .text(function(d) { if (d.value[0] <= 1) {return '';} return d.value[0]; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
 
     svg.selectAll('.threeset')
         .data(dates)
@@ -681,17 +698,7 @@ function graph_three_sets_per_day(dates) {
         .attr('x', function(d,i) { return margin_horizontal + i * total_bar_width; } )
         .attr('y', height/2);
 
-    svg.selectAll('.threesetnr')
-        .data(dates)
-        .enter()
-        .append('text')
-        .attr('x', function(d,i) { return margin_horizontal + bar_width/2 + i * total_bar_width; } )
-        .attr('y', function(d) { return height/2 -2 + y(d.value[1]); } )
-        .text(function(d) { if (d.value[1] <= 1) {return '';} return d.value[1]; } )
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle');
-
-
+/*
     svg.selectAll('.percentage')
         .data(dates)
         .enter()
@@ -702,6 +709,7 @@ function graph_three_sets_per_day(dates) {
         .attr('fill', 'black')
         .attr('text-anchor', 'middle')
         .attr('font-size', '0.7em');
+*/
 }
 
 function graph_score_counts(scores) {
