@@ -11,7 +11,7 @@ WEBSITE_TIMEZONE = 'Etc/UTC'
 
 ALLOWED_TAGS = dict(
     tag=[],
-    shout_message=['a', 'b', 'em', 'i', 'div', 'strong', 'img', 'h2', 'br'],
+    shout_message=['a', 'b', 'em', 'i', 'div', 'strong', 'img', 'h2', 'br', 'p'],
     game_comment=['b', 'em', 'i', 'strong'],
 )
 
