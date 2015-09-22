@@ -149,7 +149,7 @@ function graph_match_rate(match_rate) {
     var barSpacing = 0.15 * width / match_rate.length;
     var marginTop = 20;
 
-    var margin_horizontal = 20;
+    var margin_horizontal = 40;
     var total_bar_width = (width - margin_horizontal*2) / match_rate.length;
     var bar_width = total_bar_width * 0.8;
     var bar_spacing = total_bar_width * 0.2;
@@ -158,9 +158,24 @@ function graph_match_rate(match_rate) {
         .domain([0, d3.max(match_rate, function(datum) { return datum.value; })]).rangeRound([0, height])
         .range([0, height-marginTop]);
 
+    var y_scale = d3.scale.linear()
+        .domain([0, d3.max(match_rate, function(datum) { return datum.value; })]).rangeRound([0, height])
+        .range([height, marginTop]);
+
     var dateBar = d3.select(".datechart")
         .attr("width", width)
         .attr("height", height);
+
+    y_axis = d3.svg.axis()
+        .scale(y_scale)
+        .orient('left')
+        .tickValues([5,10,15,20]);
+
+    y_axis_group = dateBar.append('g')
+        .attr('id', 'matchrateaxis')
+        .attr('class', 'axis')
+        .attr('transform', 'translate(30,0)')
+        .call(y_axis);
 
     dateBar.selectAll('.matchcountbar')
         .data(match_rate)
@@ -171,16 +186,6 @@ function graph_match_rate(match_rate) {
         .attr('width', barWidth)
         .attr('height', function(d) { return y(d.value); } )
         .attr('fill', 'steelblue')
-
-    dateBar.selectAll(".matchcountlabel")
-        .data(match_rate)
-        .enter()
-        .append("svg:text")
-        .attr("x", function(d, i) { return -5 + margin_horizontal + total_bar_width/2 + total_bar_width * i; })
-        .attr("y", function(d) { return 20 + height - y(d.value); })
-        .attr("text-anchor", "middle")
-        .text(function(d) { if (d.value <= 1) {return '';} return d.value;} )
-        .attr("fill", "white");
 }
 
 function graph_lost_won_per_day(dates) {

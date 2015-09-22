@@ -42,3 +42,6 @@ ul.shouts li    { margin-bottom: 0.7em; }
 .player         { margin:0.2em; }
 .winner         { background: lightgreen; }
 .loser          { background: #F99; }
+g.axis path     { fill: none; stroke: black; }
+g.axis line     { fill: none; stroke: black; }
+
