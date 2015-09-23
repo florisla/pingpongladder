@@ -9,8 +9,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_wtf import Form as SafeForm
 
-from data.players import player_is_admin
-
 
 class SafeModelView(ModelView):
 
@@ -25,7 +23,7 @@ class SafeModelView(ModelView):
 
     def is_accessible(self):
         # admin interface is only accessible if user is logged and is an administrator
-        return session.get('logged_in') and player_is_admin(session['username'])
+        return session.get('logged_in') and session.get('administrator', False)
 
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
