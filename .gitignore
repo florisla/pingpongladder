@@ -5,3 +5,4 @@ venv/
 configuration.py
 static/images/
 data/tournament.db
+Makefile
