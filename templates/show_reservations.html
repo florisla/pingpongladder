@@ -8,13 +8,19 @@
 <ul>
 {% for reservation in reservations %}
   <li>{{ reservation.reserver.name }} - {{ reservation.minutes_ago }} minutes ago</li>
+{% else %}
+  <li>Nobody reserved the table in the last 60 minutes, so it's free.  Log your reservation now!
+  </li>
+  {% if not session.logged_in %}
+  (But do login first.)</li>
+  {% endif %}
 {% endfor %}
 </ul>
 
 {% if session.logged_in %}
 <form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation>
-  <input type=submit value='Save reservation'>
-</form>
+  <input type=submit value='Save reservation now' id="reserve">
+</form><br />
 {% endif %}
 
 {% endblock %}

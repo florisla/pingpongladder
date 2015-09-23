@@ -44,4 +44,4 @@ ul.shouts li    { margin-bottom: 0.7em; }
 .loser          { background: #F99; }
 g.axis path     { fill: none; stroke: black; }
 g.axis line     { fill: none; stroke: black; }
-
+input#reserve   { padding: 2em; margin: 2em; }
