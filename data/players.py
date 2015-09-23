@@ -18,6 +18,10 @@ def player_is_admin(player_name):
         return False
     return True
 
+def get_player_email(player_name):
+    player = db.session.query(Player).filter(Player.name == player_name).one()
+    return (player.full_name, player.email_address)
+
 def set_player_absence(player_name, absence):
     player = db.session.query(Player).filter(Player.name == player_name).one()
     player.absence = absence

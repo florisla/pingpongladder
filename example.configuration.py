@@ -1,4 +1,5 @@
 # configuration
+WEBSITE_URL = 'http://pingpong.example.com'
 DATABASE = '/path/to/db/database.db'
 DEBUG = True
 SECRET_KEY = 'KnofBcdnLGjK5eY5'

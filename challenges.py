@@ -4,7 +4,7 @@ from flask import render_template, g, session, abort, request, redirect, url_for
 from application import app
 from data.challenges import may_challenge, add_challenge, deactivate_challenges
 from data.shouts import save_shout
-from data.players import player_is_admin
+from data.email import send_email
 
 
 @app.route('/challenges')
@@ -68,6 +68,16 @@ def add_challenge_page():
     flash("Challenge was saved")
 
     save_shout(None, "<b>{player1}</b> challenged <b>{player2}</b>".format(**request.form))
+
+    send_email(
+        request.form['player2'],
+        'You have been challenged by {challenger}'.format(challenger=request.form['player1']),
+        'Hi {challengee},\n\nPlayer {challenger} has just challenged you on the PingPongLadder.\n\nSee more at {website_url}.\n\n--\nThe PingPongLadder'.format(
+            website_url=app.config['WEBSITE_URL'],
+            challenger=request.form['player1'],
+            challengee=request.form['player2'],
+        )
+    )
 
     return redirect(url_for('show_challenges'))
 
