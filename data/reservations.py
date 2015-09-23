@@ -14,7 +14,7 @@ def get_reservations():
         .all()
 
     for reservation in reservations:
-        reservation.minits_ago = int((now - reservation.date).total_seconds() // 60)
+        reservation.minutes_ago = int((now - reservation.date).total_seconds() // 60)
 
     return reservations
 

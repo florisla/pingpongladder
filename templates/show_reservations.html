@@ -7,7 +7,7 @@
 <h3>Reservations in the last hour</h3>
 <ul>
 {% for reservation in reservations %}
-  <li>{{ reservation.reserver.name }} - {{ reservation.minits_ago }} minits ago</li>
+  <li>{{ reservation.reserver.name }} - {{ reservation.minutes_ago }} minutes ago</li>
 {% endfor %}
 </ul>
 

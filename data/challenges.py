@@ -58,5 +58,5 @@ def may_challenge(player_name, cool_down_time_range_m, cool_down_random_salt):
 
     # player may challenge again if more minutes have passed
     # than the cooldown period requires
-    lapsed_minits = (datetime.utcnow() - most_recent_challenge_game_date).total_seconds() / 60
-    return lapsed_minits > cooldown_period_m
+    lapsed_minutes = (datetime.utcnow() - most_recent_challenge_game_date).total_seconds() / 60
+    return lapsed_minutes > cooldown_period_m
