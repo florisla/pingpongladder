@@ -120,7 +120,7 @@ class TableReservation(db.Model):
     reserver = relationship("Player", foreign_keys=[reserver_id], backref=backref('table_reservations', order_by=id))
 
     def __repr__(self):
-        return "TableReservation(reserver_id={reservation.reserver_id}, active={reservation.active})".format(reservation=self)
+        return "TableReservation(reserver_id={reservation.reserver_id})".format(reservation=self)
 
     def __str__(self):
-        return "{reservation.reserver.name} {reservation.active} {reservation.date:%Y-%m-%d %H:%M}".format(reservation=self)
+        return "{reservation.reserver.name} {reservation.date:%Y-%m-%d %H:%M}".format(reservation=self)
