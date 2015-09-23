@@ -1,4 +1,5 @@
 # configuration
+WEBSITE_URL = 'http://pingpong.example.com'
 DATABASE = '/path/to/db/database.db'
 DEBUG = True
 SECRET_KEY = 'KnofBcdnLGjK5eY5'
@@ -24,6 +25,14 @@ ALLOWED_ATTRS = dict(
     },
     game_comment={},
 )
+
+MAIL_SERVER = 'smtp.example.com'
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+MAIL_DEBUG = False
+MAIL_USERNAME = 'usrnm'
+MAIL_PASSWORD = 'pwd'
+MAIL_DEFAULT_SENDER = 'pingpongladder@example.com'
 
 # example password is not shared; generate new salt and hash like this:
 #   import os
