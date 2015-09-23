@@ -1,11 +1,14 @@
 
+from flask import Flask
+
 import configuration
 
-from flask import Flask
-from flask_debugtoolbar import DebugToolbarExtension
 
 # application with configuration
 app = Flask(__name__)
 app.config.from_object(configuration)
-toolbar = DebugToolbarExtension(app)
+
+if app.config['DEBUG']:
+    from flask_debugtoolbar import DebugToolbarExtension
+    toolbar = DebugToolbarExtension(app)
 
