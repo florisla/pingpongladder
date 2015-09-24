@@ -16,7 +16,7 @@ class Player(db.Model):
     initial_rank = Column(Integer, nullable=False)
     rank_drop_at_game = Column(Integer, nullable=True)
     absence = Column(Date, nullable=True)
-    email_address = Column(String(25), nullable=True)
+    email_address = Column(String(128), nullable=True)
     password_salt = Column(LargeBinary(20))
     password_hash = Column(LargeBinary(128))
 
