@@ -8,6 +8,7 @@ from application import app
 from data.players import get_players, player_is_admin
 from data.shouts import get_shouts
 from data.challenges import get_challenges
+from data.reservations import get_reservations
 from ranking import calculate_ranking
 
 
@@ -42,10 +43,12 @@ def before_request():
 
 @app.route('/')
 def show_home():
+    table_reservations = get_reservations()
     return render_template(
         'index.html',
         shouts=g.shouts,
         challenged_players=g.challenged_players,
+        table_reservation=table_reservations[-1] if len(table_reservations) > 0 else None,
     )
 
 

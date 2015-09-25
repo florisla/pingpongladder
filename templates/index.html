@@ -12,6 +12,12 @@
   <svg width="800" height="450"></svg>
   </p>
 
+{% if table_reservation %}
+    Table status: in use by {{ table_reservation.reserver.name }} {{ table_reservation.minutes_ago }} minutes ago.<br /><br />
+{% else %}
+    Table status: free.  <form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation><input type=submit value='Save reservation now' id="reservesmall"></form><br />
+{% endif %}
+
 {% include "shoutbox.html" %}
 &lt;- <a href="/shoutbox">All shouts</a>
 
