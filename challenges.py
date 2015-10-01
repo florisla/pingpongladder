@@ -2,7 +2,7 @@
 from flask import render_template, g, session, abort, request, redirect, url_for, flash
 
 from application import app
-from data.challenges import may_challenge, add_challenge, deactivate_challenges
+from data.challenges import may_challenge, may_be_challenged, add_challenge, deactivate_challenges
 from data.shouts import save_shout
 from data.email import send_email
 
@@ -26,7 +26,8 @@ def add_challenge_page():
     if request.form['player2'] not in g.ranking:
         abort(401)
 
-    # deny 'serial' challenges (placed too quickly after last played challenge)
+    # deny 'serial' challenges fromt the challenger
+    # (placed too quickly after last played challenge)
     can_challenge = may_challenge(
         request.form['player1'],
         app.config['CHALLENGE_COOLDOWN_DURATION_M'],
@@ -47,6 +48,28 @@ def add_challenge_page():
                 player=request.form['player1']
             )
         )
+        # do log the challenge for statistics
+        add_challenge(request.form['player1'], request.form['player2'], active=False)
+        return redirect(url_for('show_challenges'))
+
+    # deny 'too fast' challenges' of a just-challenged challengee
+    can_be_challenged = may_be_challenged(
+        request.form['player2'],
+        app.config['CHALLENGE_COOLDOWN_DURATION_M'],
+        app.config['COOLDOWN_RANDOMIZE_SALT']
+    )
+    if not can_be_challenged:
+        flash(
+            "Player {challengee} has just played a defensive challenge.  He/she is still in "
+            "a cool-down period where you cannot challenge him/her yet. Patience!".format(
+                challengee=request.form['player2'],
+            ),
+            'error'
+        )
+
+        # no shout necessary
+
+        # do log the challenge for statistics
         add_challenge(request.form['player1'], request.form['player2'], active=False)
         return redirect(url_for('show_challenges'))
 
