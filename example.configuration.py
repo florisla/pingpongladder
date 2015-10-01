@@ -33,6 +33,7 @@ MAIL_DEBUG = False
 MAIL_USERNAME = 'usrnm'
 MAIL_PASSWORD = 'pwd'
 MAIL_DEFAULT_SENDER = 'pingpongladder@example.com'
+MAIL_SUPPRESS_SEND = True
 
 # example password is not shared; generate new salt and hash like this:
 #   import os
