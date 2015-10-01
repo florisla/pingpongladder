@@ -40,6 +40,10 @@ def link_challenge_to_game(game):
     db.session.commit()
 
 def may_challenge(player_name, cool_down_time_range_m, cool_down_random_salt):
+    """
+    Check whether the given challenger is not placing a new challenge too quickly after
+    the previous one.
+    """
     player = db.session.query(Player).filter(Player.name == player_name).one()
 
     most_recent_challenge_game_date = db.session.\
@@ -59,4 +63,26 @@ def may_challenge(player_name, cool_down_time_range_m, cool_down_random_salt):
     # player may challenge again if more minutes have passed
     # than the cooldown period requires
     lapsed_minutes = (datetime.utcnow() - most_recent_challenge_game_date).total_seconds() / 60
+    return lapsed_minutes > cooldown_period_m
+
+def may_be_challenged(player_name, cool_down_time_range_m, cool_down_random_salt):
+    player = db.session.query(Player).filter(Player.name == player_name).one()
+
+    most_recent_challengee_game_date = db.session. \
+        query(func.max(Game.date)). \
+        filter(Game.defender == player). \
+        first()[0]
+
+    if not most_recent_challengee_game_date:
+        return True
+
+    # find for this game date, the 'cooldown' time in minutes
+    # this is random out of a range, but a random value which is unique and constant
+    # per game date/time (seeded)
+    random.seed(cool_down_random_salt + str(most_recent_challengee_game_date))
+    cooldown_period_m = random.randint(*cool_down_time_range_m)
+
+    # player may challenge again if more minutes have passed
+    # than the cooldown period requires
+    lapsed_minutes = (datetime.utcnow() - most_recent_challengee_game_date).total_seconds() / 60
     return lapsed_minutes > cooldown_period_m
