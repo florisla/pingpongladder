@@ -93,13 +93,14 @@ def add_challenge_page():
     save_shout(None, "<b>{player1}</b> challenged <b>{player2}</b>".format(**request.form))
 
     send_email(
-        request.form['player2'],
-        'You have been challenged by {challenger}'.format(challenger=request.form['player1']),
-        'Hi {challengee},\n\nPlayer {challenger} has just challenged you on the PingPongLadder.\n\nSee more at {website_url}.\n\n--\nThe PingPongLadder'.format(
+        player_name=request.form['player2'],
+        title='You have been challenged by {challenger}'.format(challenger=request.form['player1']),
+        body_text='Hi {challengee},\n\nPlayer {challenger} has just challenged you on the PingPongLadder.\n\nSee more at {website_url}.\n\n--\nThe PingPongLadder'.format(
             website_url=app.config['WEBSITE_URL'],
             challenger=request.form['player1'],
             challengee=request.form['player2'],
-        )
+        ),
+        cc=[request.form['player1']],
     )
 
     return redirect(url_for('show_challenges'))
