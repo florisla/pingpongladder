@@ -13,10 +13,17 @@
   </p>
 
 {% if table_reservation %}
-    Table status: in use by {{ table_reservation.reserver.name }} {{ table_reservation.minutes_ago }} minutes ago.<br /><br />
+    Table status: in use by <b>{{ table_reservation.reserver.name }}</b> {{ table_reservation.minutes_ago }} minutes ago.<br />
+    {% if session.logged_in %}
+    <form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation><input type=submit value='Save additional reservation' id="reservesmall"></form><br />
+    {% endif %}
 {% else %}
-    Table status: free.  <form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation><input type=submit value='Save reservation now' id="reservesmall"></form><br />
+    Table status: free.<br />
+    {% if session.logged_in %}
+    <form action="{{ url_for('save_table_reservation') }}" method=post class=save-reservation><input type=submit value='Save reservation now' id="reservesmall"></form><br />
+    {% endif %}
 {% endif %}
+
 
 {% include "shoutbox.html" %}
 &lt;- <a href="/shoutbox">All shouts</a>
